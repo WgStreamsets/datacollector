@@ -139,11 +139,24 @@ public class MysqlSourceConfig {
     @ConfigDef(
             required = false,
             type = ConfigDef.Type.STRING,
+            label = "Include tables",
+            description = "Comma-delimited list of database and table names to include. Database and table names support wildcards - " +
+                    "special character '%' match any number of any chars. DB and table name are delimited by dot. " +
+                    "Example - 'db%sales.sales_%_dep,db2.orders'. All tables that are not included are ignored.",
+            displayPosition = 90,
+            group = "ADVANCED"
+    )
+    public String includeTables;
+
+    @ConfigDef(
+            required = false,
+            type = ConfigDef.Type.STRING,
             label = "Ignore tables",
             description = "Comma-delimited list of database and table names to ignore. Database and table names support wildcards - " +
                     "special character '%' match any number of any chars. DB and table name are delimited by dot. " +
-                    "Example - 'db%sales.sales_%_dep,db2.orders'",
-            displayPosition = 90,
+                    "Example - 'db%sales.sales_%_dep,db2.orders'. Ignore tables have precedence over include tables - " +
+                    "if some table is both included and ignored - it will be ignored.",
+            displayPosition = 100,
             group = "ADVANCED"
     )
     public String ignoreTables;

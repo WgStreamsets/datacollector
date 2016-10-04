@@ -360,10 +360,11 @@ public abstract class AbstractMysqlSource {
     }
 
     @Test
-    public void shouldIgnoreTables() throws Exception {
+    public void shouldIncludeAndIgnoreTables() throws Exception {
         MysqlSourceConfig config = createConfig("root");
         MysqlSource source = createMysqlSource(config);
-        config.ignoreTables = "test.foo,t%.foo2";
+        config.includeTables = "test.foo,t%.foo2";
+        config.ignoreTables = "test.foo";
         SourceRunner runner = new SourceRunner.Builder(MysqlDSource.class, source)
                 .addOutputLane(LANE)
                 .build();
@@ -377,7 +378,9 @@ public abstract class AbstractMysqlSource {
         execute(ds, "INSERT INTO foo2 VALUES (1, 2, 3)");
 
         output = runner.runProduce(output.getNewOffset(), MAX_BATCH_SIZE);
-        assertThat(output.getRecords().get(LANE), is(IsEmptyCollection.<Record>empty()));
+        List<Record> records = output.getRecords().get(LANE);
+        assertThat(records, hasSize(1));
+        assertThat(records.get(0).get("/Table").getValueAsString(), is("foo2"));
     }
 
     protected void execute(DataSource ds, String sql) throws SQLException {

@@ -27,6 +27,7 @@ import com.streamsets.pipeline.api.BatchMaker;
 import com.streamsets.pipeline.api.Record;
 import com.streamsets.pipeline.api.StageException;
 import com.streamsets.pipeline.api.base.BaseSource;
+import com.streamsets.pipeline.stage.origin.mysql.filters.IncludeTableFilter;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import com.zaxxer.hikari.pool.PoolInitializationException;
@@ -95,11 +96,22 @@ public abstract class MysqlSource extends BaseSource {
             }
         }
 
-        // check if filters are correct
+        // create include/ignore filters
+        Filter includeFilter = null;
         try {
-            filter = createFilter();
+            includeFilter = createIncludeFilter();
         } catch (IllegalArgumentException e) {
-            LOG.error("Error connecting to MySql binlog: {}", e.getMessage(), e);
+            LOG.error("Error creating include tables filter: {}", e.getMessage(), e);
+            issues.add(getContext().createConfigIssue(
+                    Groups.MYSQL.name(), "Include tables", Errors.MYSQL_008, e.getMessage(), e
+            ));
+        }
+
+        try {
+            Filter ignoreFilter = createIgnoreFilter();
+            filter = includeFilter.and(ignoreFilter);
+        } catch (IllegalArgumentException e) {
+            LOG.error("Error creating ignore tables filter: {}", e.getMessage(), e);
             issues.add(getContext().createConfigIssue(
                     Groups.MYSQL.name(), "Ignore tables", Errors.MYSQL_007, e.getMessage(), e
             ));
@@ -267,12 +279,30 @@ public abstract class MysqlSource extends BaseSource {
         }
     }
 
-    private Filter createFilter() {
-        Filter filter = Filters.empty();
+    private Filter createIgnoreFilter() {
+        Filter filter = Filters.PASS;
         if (getConfig().ignoreTables != null) {
             for (String table : getConfig().ignoreTables.split(",")) {
                 if (!table.isEmpty()) {
                     filter = filter.and(new IgnoreTableFilter(table));
+                }
+            }
+        }
+        return filter;
+    }
+
+    private Filter createIncludeFilter() {
+        // if there are no include filters - pass
+        Filter filter = Filters.PASS;
+        if (getConfig().includeTables != null) {
+            String[] includeTables = getConfig().includeTables.split(",");
+            if (includeTables.length > 0) {
+                // ignore all that is not explicitly included
+                filter = Filters.DISCARD;
+                for (String table : includeTables) {
+                    if (!table.isEmpty()) {
+                        filter = filter.or(new IncludeTableFilter(table));
+                    }
                 }
             }
         }

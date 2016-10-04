@@ -21,6 +21,7 @@ package com.streamsets.pipeline.stage.origin.mysql;
 
 import com.streamsets.pipeline.stage.origin.mysql.filters.Filter;
 import com.streamsets.pipeline.stage.origin.mysql.filters.IgnoreTableFilter;
+import com.streamsets.pipeline.stage.origin.mysql.filters.IncludeTableFilter;
 import com.streamsets.pipeline.stage.origin.mysql.schema.Column;
 import com.streamsets.pipeline.stage.origin.mysql.schema.Table;
 import org.junit.Test;
@@ -68,6 +69,35 @@ public class FiltersTest {
         assertThat(filter.apply(event("a", "Ta1")), is(Filter.Result.DISCARD));
         assertThat(filter.apply(event("a", "Ta2221")), is(Filter.Result.DISCARD));
         assertThat(filter.apply(event("ab", "Ta2221")), is(Filter.Result.DISCARD));
+    }
+
+    @Test
+    public void shouldIncludeByDbAndTableName() {
+        Filter filter = new IncludeTableFilter("A%.T%1");
+        assertThat(filter.apply(event("a", "t")), is(Filter.Result.DISCARD));
+        assertThat(filter.apply(event("a", "t21")), is(Filter.Result.PASS));
+    }
+
+    @Test
+    public void shouldIncludeByDbAndTableNames() {
+        Filter filter = new IncludeTableFilter("A%.T%1").or(
+                new IncludeTableFilter("B.t2")
+        );
+        assertThat(filter.apply(event("a", "t21")), is(Filter.Result.PASS));
+        assertThat(filter.apply(event("b", "t2")), is(Filter.Result.PASS));
+        assertThat(filter.apply(event("b", "t3")), is(Filter.Result.DISCARD));
+    }
+
+    @Test
+    public void shouldIncludeAndIgnoreByDbAndTableNames() {
+        Filter filter = new IncludeTableFilter("A%.T1").or(
+                new IncludeTableFilter("B.t2")
+        ).and(
+                new IgnoreTableFilter("a.t1")
+        );
+        assertThat(filter.apply(event("b", "t2")), is(Filter.Result.PASS));
+        assertThat(filter.apply(event("b", "t3")), is(Filter.Result.DISCARD));
+        assertThat(filter.apply(event("a", "t1")), is(Filter.Result.DISCARD));
     }
 
     private EnrichedEvent event(String db, String tableName) {

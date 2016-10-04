@@ -24,16 +24,17 @@ import com.streamsets.pipeline.stage.origin.mysql.EnrichedEvent;
 import java.util.regex.Pattern;
 
 /**
- * Ignores events for given table. Database and table name are case-insensetive.
+ * Accepts events for given table. If database and table name do not match - rejects event.
+ * Database and table name are case-insensetive.
  */
-public class IgnoreTableFilter implements Filter {
+public class IncludeTableFilter implements Filter {
     private final Pattern tableName;
     private final Pattern dbName;
 
-    public IgnoreTableFilter(String dbAndTable) {
+    public IncludeTableFilter(String dbAndTable) {
         int i = dbAndTable.indexOf('.');
         if (i == -1) {
-            throw new IllegalArgumentException("IgnoreTableFilter should have format 'db.tableName'");
+            throw new IllegalArgumentException("IncludeTableFilter should have format 'db.tableName'");
         }
         String db = dbAndTable.substring(0, i);
         String table = dbAndTable.substring(i + 1, dbAndTable.length());
@@ -45,9 +46,9 @@ public class IgnoreTableFilter implements Filter {
     public Result apply(EnrichedEvent event) {
         if (dbName.matcher(event.getTable().getDatabase().toLowerCase().trim()).matches() &&
                 tableName.matcher(event.getTable().getName().toLowerCase().trim()).matches()) {
-            return Result.DISCARD;
+            return Result.PASS;
         }
-        return Result.PASS;
+        return Result.DISCARD;
     }
 
     @Override

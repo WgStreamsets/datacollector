@@ -25,22 +25,46 @@ import com.streamsets.pipeline.stage.origin.mysql.EnrichedEvent;
  * Filters utility methods.
  */
 public class Filters {
+    public static final Filter PASS =  new Filter() {
+        @Override
+        public Filter.Result apply(EnrichedEvent event) {
+            return Filter.Result.PASS;
+        }
+
+        @Override
+        public Filter and(Filter filter) {
+            return Filters.and(this, filter);
+        }
+
+        @Override
+        public Filter or(Filter filter) {
+            return Filters.or(this, filter);
+        }
+    };
+
+    public static final Filter DISCARD = new Filter() {
+        @Override
+        public Filter.Result apply(EnrichedEvent event) {
+            return Result.DISCARD;
+        }
+
+        @Override
+        public Filter and(Filter filter) {
+            return Filters.and(this, filter);
+        }
+
+        @Override
+        public Filter or(Filter filter) {
+            return Filters.or(this, filter);
+        }
+    };
+
     public static Filter and(Filter filter1, Filter filter2) {
         return new AndFilter(filter1, filter2);
     }
 
-    public static Filter empty() {
-        return new Filter() {
-            @Override
-            public Result apply(EnrichedEvent event) {
-                return Result.PASS;
-            }
-
-            @Override
-            public Filter and(Filter filter) {
-                return Filters.and(this, filter);
-            }
-        };
+    public static Filter or(Filter filter1, Filter filter2) {
+        return new OrFilter(filter1, filter2);
     }
 
     private static class AndFilter implements Filter {
@@ -60,6 +84,36 @@ public class Filters {
         @Override
         public Filter and(Filter filter) {
             return new AndFilter(this, filter);
+        }
+
+        @Override
+        public Filter or(Filter filter) {
+            return new OrFilter(this, filter);
+        }
+    }
+
+    private static class OrFilter implements Filter {
+        private final Filter filter1;
+        private final Filter filter2;
+
+        private OrFilter(Filter filter1, Filter filter2) {
+            this.filter1 = filter1;
+            this.filter2 = filter2;
+        }
+
+        @Override
+        public Result apply(EnrichedEvent event) {
+            return filter1.apply(event) == Result.PASS ?  Result.PASS : filter2.apply(event);
+        }
+
+        @Override
+        public Filter and(Filter filter) {
+            return new AndFilter(this, filter);
+        }
+
+        @Override
+        public Filter or(Filter filter) {
+            return new OrFilter(this, filter);
         }
     }
 }

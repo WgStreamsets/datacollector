@@ -35,6 +35,8 @@ public interface Filter {
 
     Filter and(Filter filter);
 
+    Filter or(Filter filter);
+
     enum Result {
         PASS,
         DISCARD
