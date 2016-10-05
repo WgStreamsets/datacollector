@@ -406,6 +406,28 @@ public abstract class AbstractMysqlSource {
         assertThat(records, hasSize(2));
     }
 
+    @Test
+    public void shouldReturnCorrectOffsetForFilteredOutEvents() throws Exception {
+        MysqlSourceConfig config = createConfig("root");
+        MysqlSource source = createMysqlSource(config);
+        config.ignoreTables = "test.foo";
+        SourceRunner runner = new SourceRunner.Builder(MysqlDSource.class, source)
+                .addOutputLane(LANE)
+                .build();
+        runner.runInit();
+
+        final String lastSourceOffset = null;
+        StageRunner.Output output = runner.runProduce(lastSourceOffset, MAX_BATCH_SIZE);
+        assertThat(output.getRecords().get(LANE), is(IsEmptyCollection.<Record>empty()));
+
+        execute(ds, "INSERT INTO foo (bar) VALUES (1)");
+
+        output = runner.runProduce(output.getNewOffset(), MAX_BATCH_SIZE);
+        List<Record> records = output.getRecords().get(LANE);
+        assertThat(records, is(empty()));
+        assertThat(output.getNewOffset(), not(isEmptyString()));
+    }
+
     protected void execute(DataSource ds, String sql) throws SQLException {
         execute(ds, Collections.singletonList(sql));
     }

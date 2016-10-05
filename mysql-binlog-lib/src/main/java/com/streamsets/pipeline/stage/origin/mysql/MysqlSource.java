@@ -59,7 +59,7 @@ public abstract class MysqlSource extends BaseSource {
 
     private SourceOffsetFactory offsetFactory;
 
-    private Filter filter;
+    private Filter eventFilter;
 
     private final BlockingQueue<ServerException> serverErrors = new LinkedBlockingQueue<>();
 
@@ -118,7 +118,7 @@ public abstract class MysqlSource extends BaseSource {
         }
 
         if (ignoreFilter != null && includeFilter != null) {
-            filter = includeFilter.and(ignoreFilter);
+            eventFilter = includeFilter.and(ignoreFilter);
         }
 
         // connect to mysql
@@ -170,7 +170,7 @@ public abstract class MysqlSource extends BaseSource {
             MysqlSchemaRepository schemaRepository = new MysqlSchemaRepository(dataSource);
             eventBuffer = new EventBuffer(getConfig().maxBatchSize);
             client = createBinaryLogClient();
-            consumer = new BinaryLogConsumer(schemaRepository, eventBuffer, client, filter);
+            consumer = new BinaryLogConsumer(schemaRepository, eventBuffer, client);
 
             connectClient(client, lastSourceOffset);
             LOG.info("Connected client with configuration: {}", getConfig());
@@ -197,16 +197,23 @@ public abstract class MysqlSource extends BaseSource {
             handleErrors();
 
             if (event != null) {
-                List<Record> records = recordConverter.toRecords(event);
-                // If we are in preview mode, make sure we don't send a huge number of messages.
-                if (getContext().isPreview() && recordCounter + records.size() > batchSize) {
-                    records = records.subList(0, batchSize - recordCounter);
-                }
-                for (Record record : records) {
-                    batchMaker.addRecord(record);
-                }
-                recordCounter += records.size();
+                // move offset no matter if event is filtered out
                 lastSourceOffset = event.getOffset().format();
+
+                // check if event should be filtered out
+                if (eventFilter.apply(event) == Filter.Result.PASS) {
+                    List<Record> records = recordConverter.toRecords(event);
+                    // If we are in preview mode, make sure we don't send a huge number of messages.
+                    if (getContext().isPreview() && recordCounter + records.size() > batchSize) {
+                        records = records.subList(0, batchSize - recordCounter);
+                    }
+                    for (Record record : records) {
+                        batchMaker.addRecord(record);
+                    }
+                    recordCounter += records.size();
+                } else {
+                    LOG.trace("Event for {}.{} filtered out", event.getTable().getDatabase(), event.getTable().getName());
+                }
             }
         }
         return lastSourceOffset;
@@ -285,7 +292,7 @@ public abstract class MysqlSource extends BaseSource {
 
     private Filter createIgnoreFilter() {
         Filter filter = Filters.PASS;
-        if (getConfig().ignoreTables != null && !getConfig().includeTables.isEmpty()) {
+        if (getConfig().ignoreTables != null && !getConfig().ignoreTables.isEmpty()) {
             for (String table : getConfig().ignoreTables.split(",")) {
                 if (!table.isEmpty()) {
                     filter = filter.and(new IgnoreTableFilter(table));

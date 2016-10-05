@@ -44,7 +44,6 @@ public class BinaryLogConsumer implements EventListener {
     private final Map<Long, DatabaseAndTable> tableMapping = new HashMap<>();
     private final EventBuffer eventBuffer;
     private final BinaryLogClient client;
-    private final Filter filter;
 
     // current consumed gtids
     private String currentGtidSet;
@@ -57,11 +56,10 @@ public class BinaryLogConsumer implements EventListener {
 
     private SourceOffset currentOffset;
 
-    public BinaryLogConsumer(MysqlSchemaRepository schemaRepository, EventBuffer eventBuffer, BinaryLogClient client, Filter filter) {
+    public BinaryLogConsumer(MysqlSchemaRepository schemaRepository, EventBuffer eventBuffer, BinaryLogClient client) {
         this.schemaRepository = schemaRepository;
         this.eventBuffer = eventBuffer;
         this.client = client;
-        this.filter = filter;
     }
 
     public void setOffset(SourceOffset offset) {
@@ -168,11 +166,7 @@ public class BinaryLogConsumer implements EventListener {
 
         for (Table table : tableOpt.asSet()) {
             EnrichedEvent enrichedEvent = new EnrichedEvent(event, table, currentOffset);
-            if (filter.apply(enrichedEvent) == Filter.Result.PASS) {
-                eventBuffer.put(enrichedEvent);
-            } else {
-                LOG.trace("Event for {}.{} filtered out", table.getDatabase(), table.getName());
-            }
+            eventBuffer.put(enrichedEvent);
         }
     }
 
