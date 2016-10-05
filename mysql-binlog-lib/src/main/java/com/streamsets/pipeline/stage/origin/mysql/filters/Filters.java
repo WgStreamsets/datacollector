@@ -40,6 +40,11 @@ public class Filters {
         public Filter or(Filter filter) {
             return Filters.or(this, filter);
         }
+
+        @Override
+        public String toString() {
+            return "Filters.PASS";
+        }
     };
 
     public static final Filter DISCARD = new Filter() {
@@ -56,6 +61,11 @@ public class Filters {
         @Override
         public Filter or(Filter filter) {
             return Filters.or(this, filter);
+        }
+
+        @Override
+        public String toString() {
+            return "Filters.DISCARD";
         }
     };
 
@@ -90,6 +100,14 @@ public class Filters {
         public Filter or(Filter filter) {
             return new OrFilter(this, filter);
         }
+
+        @Override
+        public String toString() {
+            return "AndFilter{" +
+                    "filter1=" + filter1 +
+                    ", filter2=" + filter2 +
+                    '}';
+        }
     }
 
     private static class OrFilter implements Filter {
@@ -114,6 +132,14 @@ public class Filters {
         @Override
         public Filter or(Filter filter) {
             return new OrFilter(this, filter);
+        }
+
+        @Override
+        public String toString() {
+            return "OrFilter{" +
+                    "filter1=" + filter1 +
+                    ", filter2=" + filter2 +
+                    '}';
         }
     }
 }

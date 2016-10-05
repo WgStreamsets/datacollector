@@ -60,4 +60,12 @@ public class IncludeTableFilter implements Filter {
     public Filter or(Filter filter) {
         return Filters.or(this, filter);
     }
+
+    @Override
+    public String toString() {
+        return "IncludeTableFilter{" +
+                "tableName=" + tableName +
+                ", dbName=" + dbName +
+                '}';
+    }
 }

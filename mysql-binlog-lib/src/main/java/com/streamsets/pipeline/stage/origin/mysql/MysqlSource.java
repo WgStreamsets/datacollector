@@ -107,14 +107,18 @@ public abstract class MysqlSource extends BaseSource {
             ));
         }
 
+        Filter ignoreFilter = null;
         try {
-            Filter ignoreFilter = createIgnoreFilter();
-            filter = includeFilter.and(ignoreFilter);
+            ignoreFilter = createIgnoreFilter();
         } catch (IllegalArgumentException e) {
             LOG.error("Error creating ignore tables filter: {}", e.getMessage(), e);
             issues.add(getContext().createConfigIssue(
                     Groups.MYSQL.name(), "Ignore tables", Errors.MYSQL_007, e.getMessage(), e
             ));
+        }
+
+        if (ignoreFilter != null && includeFilter != null) {
+            filter = includeFilter.and(ignoreFilter);
         }
 
         // connect to mysql
@@ -281,7 +285,7 @@ public abstract class MysqlSource extends BaseSource {
 
     private Filter createIgnoreFilter() {
         Filter filter = Filters.PASS;
-        if (getConfig().ignoreTables != null) {
+        if (getConfig().ignoreTables != null && !getConfig().includeTables.isEmpty()) {
             for (String table : getConfig().ignoreTables.split(",")) {
                 if (!table.isEmpty()) {
                     filter = filter.and(new IgnoreTableFilter(table));
@@ -294,7 +298,7 @@ public abstract class MysqlSource extends BaseSource {
     private Filter createIncludeFilter() {
         // if there are no include filters - pass
         Filter filter = Filters.PASS;
-        if (getConfig().includeTables != null) {
+        if (getConfig().includeTables != null && !getConfig().includeTables.isEmpty()) {
             String[] includeTables = getConfig().includeTables.split(",");
             if (includeTables.length > 0) {
                 // ignore all that is not explicitly included

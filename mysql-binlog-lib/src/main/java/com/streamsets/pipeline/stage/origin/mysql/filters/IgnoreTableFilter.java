@@ -59,4 +59,12 @@ public class IgnoreTableFilter implements Filter {
     public Filter or(Filter filter) {
         return Filters.or(this, filter);
     }
+
+    @Override
+    public String toString() {
+        return "IgnoreTableFilter{" +
+                "tableName=" + tableName +
+                ", dbName=" + dbName +
+                '}';
+    }
 }

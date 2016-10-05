@@ -383,6 +383,29 @@ public abstract class AbstractMysqlSource {
         assertThat(records.get(0).get("/Table").getValueAsString(), is("foo2"));
     }
 
+    @Test
+    public void shouldIgnoreEmptyFilters() throws Exception {
+        MysqlSourceConfig config = createConfig("root");
+        MysqlSource source = createMysqlSource(config);
+        config.includeTables = "";
+        config.ignoreTables = "";
+        SourceRunner runner = new SourceRunner.Builder(MysqlDSource.class, source)
+                .addOutputLane(LANE)
+                .build();
+        runner.runInit();
+
+        final String lastSourceOffset = null;
+        StageRunner.Output output = runner.runProduce(lastSourceOffset, MAX_BATCH_SIZE);
+        assertThat(output.getRecords().get(LANE), is(IsEmptyCollection.<Record>empty()));
+
+        execute(ds, "INSERT INTO foo (bar) VALUES (1)");
+        execute(ds, "INSERT INTO foo2 VALUES (1, 2, 3)");
+
+        output = runner.runProduce(output.getNewOffset(), MAX_BATCH_SIZE);
+        List<Record> records = output.getRecords().get(LANE);
+        assertThat(records, hasSize(2));
+    }
+
     protected void execute(DataSource ds, String sql) throws SQLException {
         execute(ds, Collections.singletonList(sql));
     }
