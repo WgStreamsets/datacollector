@@ -32,7 +32,7 @@ public class BinLogPositionSourceOffset implements SourceOffset {
 
     @Override
     public String format() {
-        return String.format("%s;%s", filename, position);
+        return String.format("%s:%s", filename, position);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class BinLogPositionSourceOffset implements SourceOffset {
     }
 
     public static BinLogPositionSourceOffset parse(String offset) {
-        String[] a = offset.split(";");
+        String[] a = offset.split(":");
         String filename = a[0];
         long position = Long.valueOf(a[1]);
         return new BinLogPositionSourceOffset(filename, position);

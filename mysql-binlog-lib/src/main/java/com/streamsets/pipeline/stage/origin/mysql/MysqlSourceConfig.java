@@ -24,13 +24,13 @@ import com.streamsets.pipeline.api.ConfigDef;
 
 public class MysqlSourceConfig {
     @ConfigDef(
-        required = true,
-        type = ConfigDef.Type.STRING,
-        defaultValue = "localhost",
-        label = "Hostname",
-        description = "MySql server hostname",
-        displayPosition = 10,
-        group = "MYSQL"
+            required = true,
+            type = ConfigDef.Type.STRING,
+            defaultValue = "localhost",
+            label = "Hostname",
+            description = "MySql server hostname",
+            displayPosition = 10,
+            group = "MYSQL"
     )
     public String hostname;
 
@@ -129,7 +129,7 @@ public class MysqlSourceConfig {
             label = "Initial offset",
             description = "On first origin start read events starting from given offset. " +
                     "Offset format depends on GTID mode. When GTID is enabled - it should be a GTID-set of transactions that should be skipped. " +
-                    "When GTID is disabled - it should be binlog filename + binlog position to start from in format '${binlog-filename};${binlog-position}'. " +
+                    "When GTID is disabled - it should be binlog filename + binlog position to start from in format '${binlog-filename}:${binlog-position}'. " +
                     "Note - this setting conflicts with 'Start from beginning' setting, if both are set - this takes precedence.",
             displayPosition = 80,
             group = "MYSQL"

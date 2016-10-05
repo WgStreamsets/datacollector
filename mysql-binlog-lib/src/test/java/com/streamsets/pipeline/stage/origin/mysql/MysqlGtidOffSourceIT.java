@@ -80,7 +80,7 @@ public class MysqlGtidOffSourceIT extends AbstractMysqlSource {
     public void shouldStartFromOffset() throws Exception {
         execute(ds, "INSERT INTO foo (bar) VALUES (1)");
 
-        String offset = String.format("%s;%s", getBinlogFilename(), getBinlogPosition());
+        String offset = String.format("%s:%s", getBinlogFilename(), getBinlogPosition());
 
         execute(ds, "INSERT INTO foo (bar) VALUES (2)");
 
