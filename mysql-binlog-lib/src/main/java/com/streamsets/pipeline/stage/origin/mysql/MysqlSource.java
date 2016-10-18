@@ -352,37 +352,5 @@ public abstract class MysqlSource extends BaseSource {
             // record policy does not matter - stop pipeline
             throw new StageException(Errors.MYSQL_006, e.getMessage(), e);
         }
-
-        // handle records errors
-        for (EventError e : eventBuffer.resetErrors()) {
-            switch (getContext().getOnErrorRecord()) {
-                case DISCARD:
-                    break;
-                case TO_ERROR:
-                    getContext().reportError(
-                            Errors.MYSQL_004,
-                            e.getEvent(),
-                            e.getOffset(),
-                            e.getException().toString(),
-                            e.getException()
-                    );
-                    break;
-                case STOP_PIPELINE:
-                    if (e.getException() instanceof StageException) {
-                        throw (StageException) e.getException();
-                    } else {
-                        throw new StageException(
-                                Errors.MYSQL_004,
-                                e.getEvent(),
-                                e.getOffset(),
-                                e.getException().toString(),
-                                e.getException()
-                        );
-                    }
-                default:
-                    throw new IllegalStateException(String.format("Unknown On Error Value '%s'",
-                            getContext().getOnErrorRecord()), e.getException());
-            }
-        }
     }
 }

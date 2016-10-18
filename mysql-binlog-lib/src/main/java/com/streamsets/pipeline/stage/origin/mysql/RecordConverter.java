@@ -165,7 +165,7 @@ public class RecordConverter {
         int n = 0;
         for (int i = 0; i < columns.size(); i++) {
             if (columns.get(i)) {
-                Column col = table.getColumns().get(i);
+                Column col = table.getColumn(i);
                 res.add(new ColumnValue(col, values[n]));
                 n++;
             }

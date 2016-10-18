@@ -19,23 +19,23 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
-import com.google.common.base.Optional;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+import java.util.Arrays;
+import javax.sql.DataSource;
+
 import com.streamsets.pipeline.stage.origin.mysql.schema.Column;
 import com.streamsets.pipeline.stage.origin.mysql.schema.DatabaseAndTable;
 import com.streamsets.pipeline.stage.origin.mysql.schema.MysqlType;
 import com.streamsets.pipeline.stage.origin.mysql.schema.Table;
+import com.streamsets.pipeline.stage.origin.mysql.schema.TableImpl;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.testcontainers.containers.MySQLContainer;
-
-import javax.sql.DataSource;
-import java.util.Arrays;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 public class MysqlSchemaRepositoryIT {
     @ClassRule
@@ -57,12 +57,12 @@ public class MysqlSchemaRepositoryIT {
 
     @Test
     public void shouldReturnAbsentForNonExistingTable() {
-        assertThat(new MysqlSchemaRepository(ds).getTable(new DatabaseAndTable(mysql.getUsername(), "non_existing")), is(Optional.<Table>absent()));
+        assertThat(new MysqlSchemaRepository(ds).getTable(new DatabaseAndTable(mysql.getUsername(), "non_existing")).isPresent(), is(false));
     }
 
     @Test
     public void shouldReturnSchema() {
-        Table expected = new Table(mysql.getUsername(), "ALL_TYPES", Arrays.asList(
+        Table expected = new TableImpl(mysql.getUsername(), "ALL_TYPES", Arrays.asList(
                 new Column("_decimal", MysqlType.DECIMAL),
                 new Column("_tinyint", MysqlType.TINY_INT),
                 new Column("_smallint", MysqlType.SMALL_INT),
@@ -89,6 +89,6 @@ public class MysqlSchemaRepositoryIT {
                 new Column("_longtext", MysqlType.LONG_TEXT)
         ));
         MysqlSchemaRepository repo = new MysqlSchemaRepository(ds);
-        assertThat(repo.getTable(new DatabaseAndTable(mysql.getUsername(), "ALL_TYPES")), is(Optional.of(expected)));
+        assertThat(repo.getTable(new DatabaseAndTable(mysql.getUsername(), "ALL_TYPES")).get(), is(expected));
     }
 }

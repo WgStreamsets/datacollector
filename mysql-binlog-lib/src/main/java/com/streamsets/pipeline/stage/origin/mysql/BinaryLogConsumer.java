@@ -19,19 +19,26 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
-import com.github.shyiko.mysql.binlog.BinaryLogClient;
-import com.github.shyiko.mysql.binlog.BinaryLogClient.EventListener;
-import com.github.shyiko.mysql.binlog.event.*;
-import com.google.common.base.Optional;
-import com.streamsets.pipeline.api.StageException;
-import com.streamsets.pipeline.stage.origin.mysql.filters.Filter;
-import com.streamsets.pipeline.stage.origin.mysql.schema.DatabaseAndTable;
-import com.streamsets.pipeline.stage.origin.mysql.schema.Table;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import com.github.shyiko.mysql.binlog.BinaryLogClient;
+import com.github.shyiko.mysql.binlog.BinaryLogClient.EventListener;
+import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
+import com.github.shyiko.mysql.binlog.event.Event;
+import com.github.shyiko.mysql.binlog.event.EventHeaderV4;
+import com.github.shyiko.mysql.binlog.event.EventType;
+import com.github.shyiko.mysql.binlog.event.GtidEventData;
+import com.github.shyiko.mysql.binlog.event.QueryEventData;
+import com.github.shyiko.mysql.binlog.event.TableMapEventData;
+import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
+import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
+import com.google.common.base.Optional;
+import com.streamsets.pipeline.stage.origin.mysql.schema.DatabaseAndTable;
+import com.streamsets.pipeline.stage.origin.mysql.schema.Table;
+import com.streamsets.pipeline.stage.origin.mysql.schema.TableWithoutColumnsNames;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Event listener for {@link BinaryLogClient} enriching events with metadata, such as table and column names,
@@ -155,19 +162,17 @@ public class BinaryLogConsumer implements EventListener {
         }
 
         DatabaseAndTable tableName = tableMapping.get(tableId);
-        Optional<Table> tableOpt = schemaRepository.getTable(tableName);
-        if (!tableOpt.isPresent()) {
+        Optional<? extends Table> tableOpt = schemaRepository.getTable(tableName);
+        Table table = null;
+        if (tableOpt.isPresent()) {
+            table = tableOpt.get();
+        } else {
             LOG.error(Errors.MYSQL_002.getMessage(), tableName.getDatabase(), tableName.getTable());
-            StageException ex = new StageException(Errors.MYSQL_002, tableName, tableName.getDatabase(), tableName.getTable());
-            EventError error = new EventError(event, currentOffset, ex);
-            eventBuffer.putError(error);
-            return;
+            // fallback to table without columns names
+            table = new TableWithoutColumnsNames(tableName.getDatabase(), tableName.getTable());
         }
-
-        for (Table table : tableOpt.asSet()) {
-            EnrichedEvent enrichedEvent = new EnrichedEvent(event, table, currentOffset);
-            eventBuffer.put(enrichedEvent);
-        }
+        EnrichedEvent enrichedEvent = new EnrichedEvent(event, table, currentOffset);
+        eventBuffer.put(enrichedEvent);
     }
 
     private boolean isGtidEnabled() {

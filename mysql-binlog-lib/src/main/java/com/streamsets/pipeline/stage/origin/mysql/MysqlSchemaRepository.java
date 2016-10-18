@@ -19,16 +19,6 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
-import com.google.common.base.Optional;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.streamsets.pipeline.stage.origin.mysql.schema.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -36,6 +26,20 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import javax.sql.DataSource;
+
+import com.google.common.base.Optional;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import com.streamsets.pipeline.stage.origin.mysql.schema.Column;
+import com.streamsets.pipeline.stage.origin.mysql.schema.DatabaseAndTable;
+import com.streamsets.pipeline.stage.origin.mysql.schema.MysqlType;
+import com.streamsets.pipeline.stage.origin.mysql.schema.Table;
+import com.streamsets.pipeline.stage.origin.mysql.schema.TableImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MysqlSchemaRepository {
     private static final String TABLE_SCHEMA_SQL = "SELECT COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
@@ -48,15 +52,15 @@ public class MysqlSchemaRepository {
         this.dataSource = dataSource;
     }
 
-    private final LoadingCache<DatabaseAndTable, Optional<Table>> cache = CacheBuilder.newBuilder()
-            .build(new CacheLoader<DatabaseAndTable, Optional<Table>>() {
+    private final LoadingCache<DatabaseAndTable, Optional<? extends Table>> cache = CacheBuilder.newBuilder()
+            .build(new CacheLoader<DatabaseAndTable, Optional<? extends Table>>() {
                 @Override
-                public Optional<Table> load(DatabaseAndTable databaseAndTable) throws Exception {
+                public Optional<? extends Table> load(DatabaseAndTable databaseAndTable) throws Exception {
                     return loadTable(databaseAndTable);
                 }
             });
 
-    public Optional<Table> getTable(DatabaseAndTable table) {
+    public Optional<? extends Table> getTable(DatabaseAndTable table) {
         try {
             return cache.get(table);
         } catch (ExecutionException | UncheckedExecutionException e) {
@@ -72,7 +76,7 @@ public class MysqlSchemaRepository {
         cache.invalidate(new DatabaseAndTable(database, table));
     }
 
-    private Optional<Table> loadTable(DatabaseAndTable databaseAndTable) {
+    private Optional<? extends Table> loadTable(DatabaseAndTable databaseAndTable) {
         try (Connection conn = dataSource.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(TABLE_SCHEMA_SQL)) {
                 stmt.setString(1, databaseAndTable.getDatabase());
@@ -88,7 +92,7 @@ public class MysqlSchemaRepository {
                     return Optional.absent();
                 } else {
                     return Optional.of(
-                            new Table(databaseAndTable.getDatabase(), databaseAndTable.getTable(), columns)
+                            new TableImpl(databaseAndTable.getDatabase(), databaseAndTable.getTable(), columns)
                     );
                 }
             }

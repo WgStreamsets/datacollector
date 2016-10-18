@@ -19,6 +19,31 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
+import static com.streamsets.pipeline.api.Field.create;
+import static com.streamsets.pipeline.api.Field.createDatetime;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.isEmptyString;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.junit.Assert.assertThat;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.sql.DataSource;
+
+import com.streamsets.pipeline.api.OnRecordError;
 import com.streamsets.pipeline.api.Record;
 import com.streamsets.pipeline.api.Stage;
 import com.streamsets.pipeline.sdk.SourceRunner;
@@ -33,23 +58,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.testcontainers.containers.MySQLContainer;
-
-import javax.sql.DataSource;
-import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static com.streamsets.pipeline.api.Field.create;
-import static com.streamsets.pipeline.api.Field.createDatetime;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public abstract class AbstractMysqlSource {
     public static final int MAX_BATCH_SIZE = 500;
@@ -426,6 +434,89 @@ public abstract class AbstractMysqlSource {
         List<Record> records = output.getRecords().get(LANE);
         assertThat(records, is(empty()));
         assertThat(output.getNewOffset(), not(isEmptyString()));
+    }
+
+    @Test
+    public void shouldCreateRecordWithoutColumnNamesWhenMetadataNotFound() throws Exception {
+        MysqlSourceConfig config = createConfig("root");
+        MysqlSource source = createMysqlSource(config);
+        SourceRunner runner = new SourceRunner.Builder(MysqlDSource.class, source)
+                .addOutputLane(LANE)
+                .setOnRecordError(OnRecordError.TO_ERROR)
+                .build();
+        runner.runInit();
+
+        final String lastSourceOffset = null;
+        StageRunner.Output output = runner.runProduce(lastSourceOffset, MAX_BATCH_SIZE);
+        String offset = output.getNewOffset();
+
+        String sql = "INSERT INTO ALL_TYPES VALUES (\n" +
+                "    1,\n" +
+                "    2,\n" +
+                "    3,\n" +
+                "    4,\n" +
+                "    5.1,\n" +
+                "    6.1,\n" +
+                "    '2016-08-18 12:01:02',\n" +
+                "    7,\n" +
+                "    8,\n" +
+                "    '2016-08-18',\n" +
+                "    '12:01:02',\n" +
+                "    '2016-08-18 12:01:02',\n" +
+                "    2016,\n" +
+                "    'A',\n" +
+                "    'a',\n" +
+                "    '1',\n" +
+                "    '1',\n" +
+                "    '2',\n" +
+                "    '3',\n" +
+                "    '4',\n" +
+                "    'text',\n" +
+                "    'text2',\n" +
+                "    'text3',\n" +
+                "    null\n" +
+                ")";
+
+        execute(ds, sql);
+        execute(ds, "DROP TABLE ALL_TYPES");
+
+        // this should not fail due to onError policy
+        output = runner.runProduce(offset, MAX_BATCH_SIZE);
+
+        assertThat(output.getRecords().get(LANE), hasSize(1));
+
+        DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withZoneUTC();
+        DateTimeFormatter formatterShort = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
+        Record rec = output.getRecords().get(LANE).get(0);
+        assertThat(rec.get("/Data/col_0"), is(create("1")));
+        assertThat(rec.get("/Data/col_1"), is(create("2")));
+        assertThat(rec.get("/Data/col_2"), is(create("3")));
+        assertThat(rec.get("/Data/col_3"), is(create("4")));
+        assertThat(rec.get("/Data/col_4"), is(create(("5.1"))));
+        assertThat(rec.get("/Data/col_5"), is(create("6.1")));
+        assertThat(rec.get("/Data/col_7"), is(create("7")));
+        assertThat(rec.get("/Data/col_8"), is(create("8")));
+        assertThat(rec.get("/Data/col_9"), is(create("2016-08-18")));
+        assertThat(rec.get("/Data/col_10"), is(create("12:01:02")));
+        assertThat(rec.get("/Data/col_12"), is(create("2016")));
+        assertThat(rec.get("/Data/col_13"), is(create("A")));
+        assertThat(rec.get("/Data/col_14"), is(create("1")));
+        assertThat(rec.get("/Data/col_15"), is(create("1")));
+        assertThat(rec.get("/Data/col_16"), is(create("1")));
+        assertThat(rec.get("/Data/col_17"), is(create("2")));
+        assertThat(rec.get("/Data/col_18"), is(create("3")));
+        assertThat(rec.get("/Data/col_19"), is(create("4")));
+        assertThat(rec.get("/Data/col_20"), is(create("text")));
+        assertThat(rec.get("/Data/col_21"), is(create("text2")));
+        assertThat(rec.get("/Data/col_22"), is(create("text3")));
+        assertThat(rec.get("/Data/col_23"), is(create((String)null)));
+
+        // test header
+        assertThat(rec.get("/Database"), is(create("test")));
+        assertThat(rec.get("/Table"), is(create("ALL_TYPES")));
+        assertThat(rec.get("/ServerId"), notNullValue());
+        assertThat(rec.get("/Timestamp"), notNullValue());
+        assertThat(rec.get("/Type"), is(create("INSERT")));
     }
 
     protected void execute(DataSource ds, String sql) throws SQLException {

@@ -30,8 +30,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * In-memory buffer for events collected from {@link com.github.shyiko.mysql.binlog.BinaryLogClient} and
- * possible errors happened during collection.
+ * In-memory buffer for events collected from {@link com.github.shyiko.mysql.binlog.BinaryLogClient}.
  * <p/>
  * Events are enriched with corresponding table metadata and offset.
  */
@@ -43,8 +42,6 @@ public class EventBuffer {
     public EventBuffer(int batchSize) {
         this.queue = new ArrayBlockingQueue<>(batchSize);
     }
-
-    private final Vector<EventError> errors = new Vector<>();
 
     /**
      * Read next event from buffer with respect to maximum timeout.
@@ -72,26 +69,6 @@ public class EventBuffer {
             LOG.error("Error adding event to buffer, reason: {}", e.toString(), e);
             Thread.currentThread().interrupt();
             return false;
-        }
-    }
-
-    /**
-     * Add error to errors list.
-     * @param e
-     */
-    public void putError(EventError e) {
-        errors.add(e);
-    }
-
-    /**
-     * Get errors if any and clear errors.
-     * @return errors if any exist.
-     */
-    public List<EventError> resetErrors() {
-        synchronized (errors) {
-            List<EventError> res = new ArrayList<>(errors);
-            errors.clear();
-            return res;
         }
     }
 }

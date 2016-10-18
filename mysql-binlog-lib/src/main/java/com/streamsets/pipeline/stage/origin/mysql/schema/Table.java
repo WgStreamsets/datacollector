@@ -19,67 +19,10 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql.schema;
 
-import java.util.List;
+public interface Table {
+    Column getColumn(int position);
 
-public class Table {
-    private final String database;
-    private final String name;
-    private final List<Column> columns;
+    String getDatabase();
 
-    public Table(String database, String name, List<Column> columns) {
-        this.database = database;
-        this.name = name;
-        this.columns = columns;
-    }
-
-    public List<Column> getColumns() {
-        return columns;
-    }
-
-    public String getDatabase() {
-        return database;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Table{");
-        sb.append("columns=").append(columns);
-        sb.append(", database='").append(database).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Table)) {
-            return false;
-        }
-
-        Table table = (Table) o;
-
-        if (database != null ? !database.equals(table.database) : table.database != null) {
-            return false;
-        }
-        if (name != null ? !name.equals(table.name) : table.name != null) {
-            return false;
-        }
-        return columns != null ? columns.equals(table.columns) : table.columns == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = database != null ? database.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (columns != null ? columns.hashCode() : 0);
-        return result;
-    }
+    String getName();
 }

@@ -19,17 +19,18 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+import java.util.Collections;
+
 import com.streamsets.pipeline.stage.origin.mysql.filters.Filter;
 import com.streamsets.pipeline.stage.origin.mysql.filters.IgnoreTableFilter;
 import com.streamsets.pipeline.stage.origin.mysql.filters.IncludeTableFilter;
 import com.streamsets.pipeline.stage.origin.mysql.schema.Column;
 import com.streamsets.pipeline.stage.origin.mysql.schema.Table;
+import com.streamsets.pipeline.stage.origin.mysql.schema.TableImpl;
 import org.junit.Test;
-
-import java.util.Collections;
-
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 public class FiltersTest {
     @Test(expected = IllegalArgumentException.class)
@@ -101,7 +102,8 @@ public class FiltersTest {
     }
 
     private EnrichedEvent event(String db, String tableName) {
-        Table table = new Table(db, tableName, Collections.<Column>emptyList());
+        Table table = new TableImpl(db, tableName, Collections.<Column>emptyList());
         return new EnrichedEvent(null, table, null);
     }
 }
+
