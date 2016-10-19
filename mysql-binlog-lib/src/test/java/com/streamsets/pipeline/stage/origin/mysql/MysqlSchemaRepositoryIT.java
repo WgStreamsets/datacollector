@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -57,7 +57,8 @@ public class MysqlSchemaRepositoryIT {
 
     @Test
     public void shouldReturnAbsentForNonExistingTable() {
-        assertThat(new MysqlSchemaRepository(ds).getTable(new DatabaseAndTable(mysql.getUsername(), "non_existing")).isPresent(), is(false));
+        MysqlSchemaRepository repo = new MysqlSchemaRepository(ds);
+        assertThat(repo.getTable(new DatabaseAndTable(mysql.getUsername(), "non_existing")).isPresent(), is(false));
     }
 
     @Test

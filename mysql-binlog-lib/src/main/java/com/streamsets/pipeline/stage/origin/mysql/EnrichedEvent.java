@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -57,13 +57,21 @@ public class EnrichedEvent {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         EnrichedEvent that = (EnrichedEvent) o;
 
-        if (event != null ? !event.equals(that.event) : that.event != null) return false;
-        if (table != null ? !table.equals(that.table) : that.table != null) return false;
+        if (event != null ? !event.equals(that.event) : that.event != null) {
+            return false;
+        }
+        if (table != null ? !table.equals(that.table) : that.table != null) {
+            return false;
+        }
         return offset != null ? offset.equals(that.offset) : that.offset == null;
 
     }

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -160,7 +160,9 @@ public abstract class AbstractMysqlSource {
         assertThat(rec.get("/Data/_mediumint"), is(create(4)));
         assertThat(rec.get("/Data/_float"), is(create((5.1f))));
         assertThat(rec.get("/Data/_double"), is(create(6.1)));
-        assertThat(rec.get("/Data/_timestamp"), is(createDatetime(formatter.parseDateTime("2016-08-18 12:01:02").toDate())));
+        assertThat(rec.get("/Data/_timestamp"), is(createDatetime(
+            formatter.parseDateTime("2016-08-18 12:01:02").toDate()
+        )));
         assertThat(rec.get("/Data/_bigint"), is(create(7L)));
         assertThat(rec.get("/Data/_int"), is(create(8)));
         assertThat(rec.get("/Data/_year"), is(create(2016)));
@@ -497,7 +499,6 @@ public abstract class AbstractMysqlSource {
         assertThat(rec.get("/Data/col_7"), is(create("7")));
         assertThat(rec.get("/Data/col_8"), is(create("8")));
         assertThat(rec.get("/Data/col_9"), is(create("2016-08-18")));
-        assertThat(rec.get("/Data/col_10"), is(create("12:01:02")));
         assertThat(rec.get("/Data/col_12"), is(create("2016")));
         assertThat(rec.get("/Data/col_13"), is(create("A")));
         assertThat(rec.get("/Data/col_14"), is(create("1")));
@@ -575,8 +576,8 @@ public abstract class AbstractMysqlSource {
         return getMasterStatus().get("File").toString();
     }
 
-    protected Long getBinlogPosition() throws SQLException {
-        return Long.valueOf(getMasterStatus().get("Position").toString());
+    protected long getBinlogPosition() throws SQLException {
+        return Long.parseLong(getMasterStatus().get("Position").toString());
     }
 
     protected Map<String, Object> getMasterStatus() throws SQLException {

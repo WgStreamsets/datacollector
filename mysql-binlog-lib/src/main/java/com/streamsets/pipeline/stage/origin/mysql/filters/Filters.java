@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -25,6 +25,7 @@ import com.streamsets.pipeline.stage.origin.mysql.EnrichedEvent;
  * Filters utility methods.
  */
 public class Filters {
+    private Filters() {}
     public static final Filter PASS =  new Filter() {
         @Override
         public Filter.Result apply(EnrichedEvent event) {

@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,6 +19,11 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -26,11 +31,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 import com.google.common.base.Throwables;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public class GtidSourceOffset implements SourceOffset {
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -54,7 +54,10 @@ public class GtidSourceOffset implements SourceOffset {
     }
 
     @JsonCreator
-    public GtidSourceOffset(@JsonProperty("gtidSet") String gtidSet, @JsonProperty("incompleteTransactions") Map<String, Long> incompleteTransactions) {
+    public GtidSourceOffset(
+        @JsonProperty("gtidSet") String gtidSet,
+        @JsonProperty("incompleteTransactions") Map<String, Long> incompleteTransactions
+    ) {
         this.gtidSet = gtidSet;
         this.incompleteTransactions = incompleteTransactions;
     }
@@ -110,25 +113,31 @@ public class GtidSourceOffset implements SourceOffset {
      * Check if given gtid + seqNo pair is contained in this incomplete transactions.
      * @param gtid
      * @param seqNo
-     * @return true if incomplete transactions have given gtid and its associated seqNo is greater or equal to given seqNo.
+     * @return true if incomplete transactions have given gtid and
+     * its associated seqNo is greater or equal to given seqNo.
      */
     public boolean incompleteTransactionsContain(String gtid, long seqNo) {
         Long s = incompleteTransactions.get(gtid);
-        if (s != null) {
-            return s >= seqNo;
-        }
-        return false;
+        return s != null && s >= seqNo;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         GtidSourceOffset that = (GtidSourceOffset) o;
 
-        if (gtidSet != null ? !gtidSet.equals(that.gtidSet) : that.gtidSet != null) return false;
-        return incompleteTransactions != null ? incompleteTransactions.equals(that.incompleteTransactions) : that.incompleteTransactions == null;
+        if (gtidSet != null ? !gtidSet.equals(that.gtidSet) : that.gtidSet != null) {
+            return false;
+        }
+        return incompleteTransactions != null
+            ? incompleteTransactions.equals(that.incompleteTransactions)
+            : that.incompleteTransactions == null;
 
     }
 

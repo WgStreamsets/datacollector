@@ -19,21 +19,9 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
-import com.github.shyiko.mysql.binlog.BinaryLogClient;
-
-/**
- * Offset in MySql binlog.
- */
-public interface SourceOffset {
-    /**
-     * Format to string.
-     * @return
-     */
-    String format();
-
-    /**
-     * Set client position to this offset.
-     * @param client
-     */
-    void positionClient(BinaryLogClient client);
+public class BinLogPositionOffsetFactory implements SourceOffsetFactory {
+  @Override
+  public SourceOffset create(String offset) {
+    return BinLogPositionSourceOffset.parse(offset);
+  }
 }

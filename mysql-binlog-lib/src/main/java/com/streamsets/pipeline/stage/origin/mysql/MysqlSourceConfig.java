@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -21,6 +21,7 @@
 package com.streamsets.pipeline.stage.origin.mysql;
 
 import com.streamsets.pipeline.api.ConfigDef;
+import com.streamsets.pipeline.api.ConfigDef.Type;
 
 public class MysqlSourceConfig {
     @ConfigDef(
@@ -70,7 +71,8 @@ public class MysqlSourceConfig {
             type = ConfigDef.Type.NUMBER,
             defaultValue = "999",
             label = "ServerId",
-            description = "ServerId used by binlog client. Must be unique among all replication slaves (origin acts as a replication slave itself).",
+            description = "ServerId used by binlog client. Must be unique among all replication slaves " +
+                "(origin acts as a replication slave itself).",
             displayPosition = 50,
             group = "MYSQL"
     )
@@ -93,7 +95,8 @@ public class MysqlSourceConfig {
             type = ConfigDef.Type.NUMBER,
             defaultValue = "1000",
             label = "Max wait timeout (ms)",
-            description = "Maximum timeout millis to wait for batch records before returning incomplete or empty batch.",
+            description = "Maximum timeout millis to wait for batch records before returning " +
+                "incomplete or empty batch.",
             displayPosition = 50,
             group = "ADVANCED"
     )
@@ -109,6 +112,17 @@ public class MysqlSourceConfig {
             group = "ADVANCED"
     )
     public int connectTimeout;
+
+    @ConfigDef(
+        required = true,
+        type = Type.BOOLEAN,
+        defaultValue = "false",
+        label = "Use SSL",
+        description = "Flat to use or not SSL for MySql connection. This is used only for ",
+        displayPosition = 65,
+        group = "ADVANCED"
+    )
+    public boolean useSsl;
 
     @ConfigDef(
             required = true,
@@ -128,9 +142,11 @@ public class MysqlSourceConfig {
             type = ConfigDef.Type.STRING,
             label = "Initial offset",
             description = "On first origin start read events starting from given offset. " +
-                    "Offset format depends on GTID mode. When GTID is enabled - it should be a GTID-set of transactions that should be skipped. " +
-                    "When GTID is disabled - it should be binlog filename + binlog position to start from in format '${binlog-filename}:${binlog-position}'. " +
-                    "Note - this setting conflicts with 'Start from beginning' setting, if both are set - this takes precedence.",
+                    "Offset format depends on GTID mode. When GTID is enabled - it should be a GTID-set of " +
+                "transactions that should be skipped. When GTID is disabled - it should be binlog filename + binlog " +
+                "position to start from in format '${binlog-filename}:${binlog-position}'. " +
+                "Note - this setting conflicts with 'Start from beginning' setting, " +
+                "if both are set - this takes precedence.",
             displayPosition = 80,
             group = "MYSQL"
     )
@@ -140,9 +156,10 @@ public class MysqlSourceConfig {
             required = false,
             type = ConfigDef.Type.STRING,
             label = "Include tables",
-            description = "Comma-delimited list of database and table names to include. Database and table names support wildcards - " +
-                    "special character '%' match any number of any chars. DB and table name are delimited by dot. " +
-                    "Example - 'db%sales.sales_%_dep,db2.orders'. All tables that are not included are ignored.",
+            description = "Comma-delimited list of database and table names to include. " +
+                "Database and table names support wildcards - special character '%' match any number of any chars. " +
+                "DB and table name are delimited by dot. Example - 'db%sales.sales_%_dep,db2.orders'. " +
+                "All tables that are not included are ignored.",
             displayPosition = 90,
             group = "ADVANCED"
     )
@@ -152,10 +169,11 @@ public class MysqlSourceConfig {
             required = false,
             type = ConfigDef.Type.STRING,
             label = "Ignore tables",
-            description = "Comma-delimited list of database and table names to ignore. Database and table names support wildcards - " +
-                    "special character '%' match any number of any chars. DB and table name are delimited by dot. " +
-                    "Example - 'db%sales.sales_%_dep,db2.orders'. Ignore tables have precedence over include tables - " +
-                    "if some table is both included and ignored - it will be ignored.",
+            description = "Comma-delimited list of database and table names to ignore. " +
+                "Database and table names support wildcards - special character '%' match any number of any chars. " +
+                "DB and table name are delimited by dot. Example - 'db%sales.sales_%_dep,db2.orders'. " +
+                "Ignore tables have precedence over include tables - if some table is both included " +
+                "and ignored - it will be ignored.",
             displayPosition = 100,
             group = "ADVANCED"
     )

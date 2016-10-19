@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,16 +19,15 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
-import org.junit.Test;
-
-import java.util.UUID;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
+import java.util.UUID;
+
+import org.junit.Test;
+
 public class GtidSourceOffsetTest {
     private String gtidSet1 = UUID.randomUUID() + ":1-10";
-    private String gtidSet2 = UUID.randomUUID() + ":2-1100";
     private String gtid1 = UUID.randomUUID() + ":100";
     private String gtid2 = UUID.randomUUID() + ":400";
 

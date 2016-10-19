@@ -1,5 +1,7 @@
 /**
- * Licensed to the Apache Software Foundation (ASF) under one
+ * Copyright 2016 StreamSets Inc.
+ *
+ * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -18,8 +20,9 @@
 package com.streamsets.pipeline.stage.origin.mysql.schema;
 
 /**
- * Table metadata with columns names and types. When MySql does not have metadata for some table (the table has been dropped)
- * this may be used - columns will have names <code>col_N</code> and data type {@link MysqlType#TEXT}.
+ * Table metadata with columns names and types. When MySql does not have metadata for some table
+ * (the table has been dropped) this may be used - columns will have names <code>col_N</code>
+ * and data type {@link MysqlType#TEXT}.
  */
 public class TableWithoutColumnsNames implements Table {
     private final String database;

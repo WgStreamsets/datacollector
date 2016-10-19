@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,12 +19,12 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql.filters;
 
-import com.streamsets.pipeline.stage.origin.mysql.EnrichedEvent;
-
 import java.util.regex.Pattern;
 
+import com.streamsets.pipeline.stage.origin.mysql.EnrichedEvent;
+
 /**
- * Ignores events for given table. Database and table name are case-insensetive.
+ * Ignores events for given table. Database and table name are case-insensitive.
  */
 public class IgnoreTableFilter implements Filter {
     private final Pattern tableName;

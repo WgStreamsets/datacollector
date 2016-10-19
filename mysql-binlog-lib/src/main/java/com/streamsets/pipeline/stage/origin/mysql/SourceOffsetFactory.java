@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -20,22 +20,5 @@
 package com.streamsets.pipeline.stage.origin.mysql;
 
 public interface SourceOffsetFactory {
-    SourceOffsetFactory GTID = new GtidSourceOffsetFactory();
-    SourceOffsetFactory BIN_LOG = new BinLogPositionOffsetFactory();
-
     SourceOffset create(String offset);
-
-    class GtidSourceOffsetFactory implements SourceOffsetFactory {
-        @Override
-        public SourceOffset create(String offset) {
-            return GtidSourceOffset.parse(offset);
-        }
-    }
-
-    class BinLogPositionOffsetFactory implements SourceOffsetFactory {
-        @Override
-        public SourceOffset create(String offset) {
-            return BinLogPositionSourceOffset.parse(offset);
-        }
-    }
 }

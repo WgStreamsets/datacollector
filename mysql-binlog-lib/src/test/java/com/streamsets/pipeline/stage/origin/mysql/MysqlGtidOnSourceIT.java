@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,6 +19,17 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
+import static com.streamsets.pipeline.api.Field.create;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.github.shyiko.mysql.binlog.GtidSet;
 import com.streamsets.pipeline.api.Record;
 import com.streamsets.pipeline.sdk.SourceRunner;
@@ -27,15 +38,6 @@ import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
 import org.testcontainers.containers.MySQLContainer;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static com.streamsets.pipeline.api.Field.create;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class MysqlGtidOnSourceIT extends AbstractMysqlSource {
     @Rule
@@ -201,7 +203,8 @@ public class MysqlGtidOnSourceIT extends AbstractMysqlSource {
         assertThat(records, hasSize(3));
 
         for (Record record : records) {
-            if (record.get("/Table").getValueAsString().equals("foo") && record.get("/Data/bar").getValueAsInteger() == 0) {
+            if (record.get("/Table").getValueAsString().equals("foo") &&
+                record.get("/Data/bar").getValueAsInteger() == 0) {
                 fail("Value before start offset found");
             }
         }

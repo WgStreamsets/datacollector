@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -185,17 +185,19 @@ public class BinaryLogConsumer implements EventListener {
             return new GtidSourceOffset(currentGtidSet)
                     .withIncompleteTransaction(currentTxGtid, currentTxEventSeqNo);
         } else {
-            return new BinLogPositionSourceOffset(client.getBinlogFilename(), ((EventHeaderV4) event.getHeader()).getNextPosition());
+            return new BinLogPositionSourceOffset(
+                client.getBinlogFilename(),
+                ((EventHeaderV4) event.getHeader()).getNextPosition()
+            );
         }
     }
 
-    private boolean isCommit(String sql) {
+    private static boolean isCommit(String sql) {
         return "COMMIT".equals(sql);
     }
 
-    private boolean isSchemaChangeQuery(String sql) {
+    private static boolean isSchemaChangeQuery(String sql) {
         String q = sql.toLowerCase().trim();
-        // TODO maybe use real parser?
         // remove extra spaces
         q = q.replaceAll(" {2,}", " ");
         return (q.startsWith("alter table") || q.startsWith("alter ignore table") || q.startsWith("drop table"));

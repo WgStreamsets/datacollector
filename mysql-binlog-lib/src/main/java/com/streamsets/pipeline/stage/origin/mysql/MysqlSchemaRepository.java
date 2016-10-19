@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -42,7 +42,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MysqlSchemaRepository {
-    private static final String TABLE_SCHEMA_SQL = "SELECT COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
+    private static final String TABLE_SCHEMA_SQL =
+        "SELECT COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS " +
+            "WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
 
     private static final Logger LOG = LoggerFactory.getLogger(MysqlSchemaRepository.class);
 
@@ -97,7 +99,11 @@ public class MysqlSchemaRepository {
                 }
             }
         } catch (SQLException e) {
-            String err = String.format("Error getting '%s.%s' schema", databaseAndTable.getDatabase(), databaseAndTable.getTable());
+            String err = String.format(
+                "Error getting '%s.%s' schema",
+                databaseAndTable.getDatabase(),
+                databaseAndTable.getTable()
+            );
             LOG.error(err, e);
             throw new SchemaLoadException(err, e);
         }

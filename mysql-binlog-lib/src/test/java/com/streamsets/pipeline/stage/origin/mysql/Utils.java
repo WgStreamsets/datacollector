@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,19 +19,21 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
+import java.io.IOException;
+import java.net.URL;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.script.ScriptException;
+import javax.sql.DataSource;
+
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.script.ScriptException;
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.net.URL;
-import java.sql.Connection;
-import java.sql.SQLException;
-
 public class Utils {
+    private Utils() {}
+
     private static final Logger LOGGER = LoggerFactory.getLogger(Utils.class);
 
     public static void runInitScript(String initScriptPath, DataSource dataSource) throws SQLException {

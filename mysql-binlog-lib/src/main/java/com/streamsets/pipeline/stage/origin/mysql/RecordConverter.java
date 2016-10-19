@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,17 +19,25 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
-import com.github.shyiko.mysql.binlog.event.*;
+import static com.streamsets.pipeline.api.Field.create;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.github.shyiko.mysql.binlog.event.DeleteRowsEventData;
+import com.github.shyiko.mysql.binlog.event.EventHeader;
+import com.github.shyiko.mysql.binlog.event.EventType;
+import com.github.shyiko.mysql.binlog.event.UpdateRowsEventData;
+import com.github.shyiko.mysql.binlog.event.WriteRowsEventData;
 import com.streamsets.pipeline.api.Field;
 import com.streamsets.pipeline.api.Record;
 import com.streamsets.pipeline.stage.origin.mysql.schema.Column;
 import com.streamsets.pipeline.stage.origin.mysql.schema.ColumnValue;
 import com.streamsets.pipeline.stage.origin.mysql.schema.Table;
-
-import java.io.Serializable;
-import java.util.*;
-
-import static com.streamsets.pipeline.api.Field.create;
 
 public class RecordConverter {
     static final String TYPE_FIELD = "Type";
@@ -57,18 +65,32 @@ public class RecordConverter {
             case PRE_GA_WRITE_ROWS:
             case WRITE_ROWS:
             case EXT_WRITE_ROWS:
-                return toRecords(event.getTable(), event.getEvent().getHeader(), event.getEvent().<WriteRowsEventData>getData(), event.getOffset());
+                return toRecords(
+                    event.getTable(),
+                    event.getEvent().getHeader(),
+                    event.getEvent().<WriteRowsEventData>getData(),
+                    event.getOffset()
+                );
             case PRE_GA_UPDATE_ROWS:
             case UPDATE_ROWS:
             case EXT_UPDATE_ROWS:
-                return toRecords(event.getTable(), event.getEvent().getHeader(), event.getEvent().<UpdateRowsEventData>getData(), event.getOffset());
+                return toRecords(
+                    event.getTable(),
+                    event.getEvent().getHeader(),
+                    event.getEvent().<UpdateRowsEventData>getData(),
+                    event.getOffset()
+                );
             case PRE_GA_DELETE_ROWS:
             case DELETE_ROWS:
             case EXT_DELETE_ROWS:
-                return toRecords(event.getTable(), event.getEvent().getHeader(), event.getEvent().<DeleteRowsEventData>getData(), event.getOffset());
+                return toRecords(
+                    event.getTable(),
+                    event.getEvent().getHeader(),
+                    event.getEvent().<DeleteRowsEventData>getData(),
+                    event.getOffset()
+                );
             default:
                 throw new IllegalArgumentException(String.format("EventType '%s' not supported", eventType));
-                // ignore
         }
     }
 
@@ -80,11 +102,19 @@ public class RecordConverter {
             Map<String, Field> fields = createHeader(table, eventHeader, offset);
             fields.put(TYPE_FIELD, create("UPDATE"));
 
-            List<ColumnValue> columnValuesOld = zipColumnsValues(eventData.getIncludedColumnsBeforeUpdate(), table, row.getKey());
+            List<ColumnValue> columnValuesOld = zipColumnsValues(
+                eventData.getIncludedColumnsBeforeUpdate(),
+                table,
+                row.getKey()
+            );
             Map<String, Field> oldData = toMap(columnValuesOld);
             fields.put(OLD_DATA_FIELD, create(oldData));
 
-            List<ColumnValue> columnValues = zipColumnsValues(eventData.getIncludedColumns(), table, row.getValue());
+            List<ColumnValue> columnValues = zipColumnsValues(
+                eventData.getIncludedColumns(),
+                table,
+                row.getValue()
+            );
             Map<String, Field> data = toMap(columnValues);
             fields.put(DATA_FIELD, create(data));
 
@@ -101,7 +131,11 @@ public class RecordConverter {
             Map<String, Field> fields = createHeader(table, eventHeader, offset);
             fields.put(TYPE_FIELD, create("INSERT"));
 
-            List<ColumnValue> columnValues = zipColumnsValues(eventData.getIncludedColumns(), table, row);
+            List<ColumnValue> columnValues = zipColumnsValues(
+                eventData.getIncludedColumns(),
+                table,
+                row
+            );
             Map<String, Field> data = toMap(columnValues);
             fields.put(DATA_FIELD, create(data));
 

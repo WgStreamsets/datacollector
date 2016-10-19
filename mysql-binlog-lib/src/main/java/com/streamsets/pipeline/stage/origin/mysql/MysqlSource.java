@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,24 +19,6 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
-import com.github.shyiko.mysql.binlog.BinaryLogClient;
-import com.github.shyiko.mysql.binlog.GtidSet;
-import com.github.shyiko.mysql.binlog.network.ServerException;
-import com.google.common.base.Throwables;
-import com.streamsets.pipeline.api.BatchMaker;
-import com.streamsets.pipeline.api.Record;
-import com.streamsets.pipeline.api.StageException;
-import com.streamsets.pipeline.api.base.BaseSource;
-import com.streamsets.pipeline.stage.origin.mysql.filters.IncludeTableFilter;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import com.zaxxer.hikari.pool.PoolInitializationException;
-import com.streamsets.pipeline.stage.origin.mysql.filters.Filter;
-import com.streamsets.pipeline.stage.origin.mysql.filters.Filters;
-import com.streamsets.pipeline.stage.origin.mysql.filters.IgnoreTableFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -45,6 +27,25 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import com.github.shyiko.mysql.binlog.BinaryLogClient;
+import com.github.shyiko.mysql.binlog.GtidSet;
+import com.github.shyiko.mysql.binlog.network.SSLMode;
+import com.github.shyiko.mysql.binlog.network.ServerException;
+import com.google.common.base.Throwables;
+import com.streamsets.pipeline.api.BatchMaker;
+import com.streamsets.pipeline.api.Record;
+import com.streamsets.pipeline.api.StageException;
+import com.streamsets.pipeline.api.base.BaseSource;
+import com.streamsets.pipeline.stage.origin.mysql.filters.Filter;
+import com.streamsets.pipeline.stage.origin.mysql.filters.Filters;
+import com.streamsets.pipeline.stage.origin.mysql.filters.IgnoreTableFilter;
+import com.streamsets.pipeline.stage.origin.mysql.filters.IncludeTableFilter;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import com.zaxxer.hikari.pool.PoolInitializationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class MysqlSource extends BaseSource {
     private static final Logger LOG = LoggerFactory.getLogger(MysqlSource.class);
@@ -77,12 +78,13 @@ public abstract class MysqlSource extends BaseSource {
         List<ConfigIssue> issues = super.init();
 
         // check if binlog client connection is possible
-        BinaryLogClient client = createBinaryLogClient();
-        client.setServerId(getConfig().serverId);
-
+        // we don't reuse this client later on, it is used just to check that client can connect, it
+        // is immediately closed after connection.
+        BinaryLogClient tmpClient = createBinaryLogClient();
+        tmpClient.setServerId(getConfig().serverId);
         try {
-            client.setKeepAlive(false);
-            client.connect(getConfig().connectTimeout);
+            tmpClient.setKeepAlive(false);
+            tmpClient.connect(getConfig().connectTimeout);
         } catch (IOException | TimeoutException e) {
             LOG.error("Error connecting to MySql binlog: {}", e.getMessage(), e);
             issues.add(getContext().createConfigIssue(
@@ -90,7 +92,7 @@ public abstract class MysqlSource extends BaseSource {
             ));
         } finally {
             try {
-                client.disconnect();
+                tmpClient.disconnect();
             } catch (IOException e) {
                 LOG.warn("Error disconnecting from MySql: {}", e.getMessage(), e);
             }
@@ -127,10 +129,12 @@ public abstract class MysqlSource extends BaseSource {
         hikariConfig.setUsername(getConfig().username);
         hikariConfig.setPassword(getConfig().password);
         hikariConfig.setReadOnly(true);
-        hikariConfig.addDataSourceProperty("useSSL", false); // TODO make configurable
+        hikariConfig.addDataSourceProperty("useSSL", getConfig().useSsl);
         try {
             dataSource = new HikariDataSource(hikariConfig);
-            offsetFactory = isGtidEnabled() ? SourceOffsetFactory.GTID : SourceOffsetFactory.BIN_LOG;
+            offsetFactory = isGtidEnabled()
+                ? new GtidSourceOffsetFactory()
+                : new BinLogPositionOffsetFactory();
         } catch (PoolInitializationException e) {
             LOG.error("Error connecting to MySql: {}", e.getMessage(), e);
             issues.add(getContext().createConfigIssue(
@@ -141,7 +145,13 @@ public abstract class MysqlSource extends BaseSource {
     }
 
     private BinaryLogClient createBinaryLogClient() {
-        return new BinaryLogClient(getConfig().hostname, getConfig().port, getConfig().username, getConfig().password);
+        BinaryLogClient binLogClient = new BinaryLogClient(getConfig().hostname, getConfig().port, getConfig().username, getConfig().password);
+        if (getConfig().useSsl) {
+            binLogClient.setSSLMode(SSLMode.REQUIRED);
+        } else {
+            binLogClient.setSSLMode(SSLMode.DISABLED);
+        }
+        return binLogClient;
     }
 
     @Override
@@ -212,7 +222,11 @@ public abstract class MysqlSource extends BaseSource {
                     }
                     recordCounter += records.size();
                 } else {
-                    LOG.trace("Event for {}.{} filtered out", event.getTable().getDatabase(), event.getTable().getName());
+                    LOG.trace(
+                        "Event for {}.{} filtered out",
+                        event.getTable().getDatabase(),
+                        event.getTable().getName()
+                    );
                 }
             }
         }
@@ -231,7 +245,8 @@ public abstract class MysqlSource extends BaseSource {
                     consumer.setOffset(offset);
                 } else if (getConfig().startFromBeginning) {
                     if (isGtidEnabled()) {
-                        // when starting from beginning with GTID - skip GTIDs that have been removed from server logs already
+                        // when starting from beginning with GTID - skip GTIDs that have been removed
+                        // from server logs already
                         GtidSet purged = new GtidSet(Util.getServerGtidPurged(dataSource));
                         // client's gtidset includes first event of purged, skip latest tx of purged
                         for (GtidSet.UUIDSet uuidSet : purged.getUUIDSets()) {
@@ -239,7 +254,7 @@ public abstract class MysqlSource extends BaseSource {
                             for (GtidSet.Interval interval : uuidSet.getIntervals()) {
                                 last = interval;
                             }
-                            purged.add(uuidSet.getUUID().toString() + ":" + String.valueOf(last.getEnd()));
+                            purged.add(String.format("%s:%s", uuidSet.getUUID(), last.getEnd()));
                         }
                         LOG.info("Skipping purged gtidset {}", purged);
                         client.setGtidSet(purged.toString());
@@ -265,8 +280,6 @@ public abstract class MysqlSource extends BaseSource {
                             }
                         }
                         client.setGtidSet(ex.toString());
-                    } else {
-                        // do nothing, in case of binlog replication client positions at current position by default
                     }
                 }
             } else {
@@ -347,8 +360,11 @@ public abstract class MysqlSource extends BaseSource {
     }
 
     private void handleErrors() throws StageException {
-        // handle server errors
         for (ServerException e : serverErrors) {
+            LOG.error("BinaryLogClient server error: {}", e.getMessage(), e);
+        }
+        ServerException e = serverErrors.poll();
+        if (e != null) {
             // record policy does not matter - stop pipeline
             throw new StageException(Errors.MYSQL_006, e.getMessage(), e);
         }

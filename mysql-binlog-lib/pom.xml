@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright 2015 StreamSets Inc.
+  Copyright 2016 StreamSets Inc.
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -30,12 +30,9 @@
   <name>StreamSets Data Collector MySql BinLog Lib</name>
 
   <properties>
-    <hikaricp.version>2.4.1</hikaricp.version>
     <mysql-connector-java.version>5.1.39</mysql-connector-java.version>
-    <mysql-binlog-connector-java.version>0.3.2</mysql-binlog-connector-java.version>
+    <mysql-binlog-connector-java.version>0.4.0</mysql-binlog-connector-java.version>
     <guava.version>19.0</guava.version>
-    <testcontainers.version>1.1.3</testcontainers.version>
-    <hamcrest.version>1.3</hamcrest.version>
   </properties>
 
   <dependencies>
@@ -63,6 +60,7 @@
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
         <version>${mysql-connector-java.version}</version>
+        <scope>provided</scope>
     </dependency>
     <dependency>
         <groupId>com.github.shyiko</groupId>

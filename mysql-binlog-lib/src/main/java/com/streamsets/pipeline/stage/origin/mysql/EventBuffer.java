@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -19,15 +19,12 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 import com.streamsets.pipeline.api.StageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Vector;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * In-memory buffer for events collected from {@link com.github.shyiko.mysql.binlog.BinaryLogClient}.
@@ -52,8 +49,7 @@ public class EventBuffer {
      */
     public EnrichedEvent poll(long timeout, TimeUnit unit) throws StageException {
         try {
-            EnrichedEvent event = queue.poll(timeout, unit);
-            return event;
+            return queue.poll(timeout, unit);
         } catch (InterruptedException e) {
             LOG.error(Errors.MYSQL_001.getMessage(), e.toString(), e);
             Thread.currentThread().interrupt();

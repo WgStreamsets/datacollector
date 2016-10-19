@@ -1,5 +1,5 @@
 /**
- * Copyright 2015 StreamSets Inc.
+ * Copyright 2016 StreamSets Inc.
  *
  * Licensed under the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -51,12 +51,18 @@ public class BinLogPositionSourceOffset implements SourceOffset {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         BinLogPositionSourceOffset that = (BinLogPositionSourceOffset) o;
 
-        if (position != that.position) return false;
+        if (position != that.position) {
+            return false;
+        }
         return filename != null ? filename.equals(that.filename) : that.filename == null;
 
     }
@@ -76,7 +82,7 @@ public class BinLogPositionSourceOffset implements SourceOffset {
     public static BinLogPositionSourceOffset parse(String offset) {
         String[] a = offset.split(":");
         String filename = a[0];
-        long position = Long.valueOf(a[1]);
+        long position = Long.parseLong(a[1]);
         return new BinLogPositionSourceOffset(filename, position);
     }
 }
