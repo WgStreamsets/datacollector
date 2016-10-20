@@ -19,6 +19,7 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -172,7 +173,15 @@ public class BinaryLogConsumer implements EventListener {
       table = new TableWithoutColumnsNames(tableName.getDatabase(), tableName.getTable());
     }
     EnrichedEvent enrichedEvent = new EnrichedEvent(event, table, currentOffset);
-    eventBuffer.put(enrichedEvent);
+    if (!eventBuffer.put(enrichedEvent)) {
+      LOG.error("Error adding event to buffer. Closing event buffer, disconnecting client.");
+      eventBuffer.close();
+      try {
+        client.disconnect();
+      } catch (IOException e) {
+        LOG.error("Error disconnecting client: {}", e.getMessage(), e);
+      }
+    }
   }
 
   private boolean isGtidEnabled() {

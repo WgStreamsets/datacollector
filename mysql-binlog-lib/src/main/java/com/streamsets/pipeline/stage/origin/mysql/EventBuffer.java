@@ -36,6 +36,9 @@ public class EventBuffer {
 
   private final ArrayBlockingQueue<EnrichedEvent> queue;
 
+  // signals that buffer should not accept events any more.
+  private volatile boolean closed = false;
+
   public EventBuffer(int batchSize) {
     this.queue = new ArrayBlockingQueue<>(batchSize);
   }
@@ -58,6 +61,11 @@ public class EventBuffer {
   }
 
   public boolean put(EnrichedEvent event) {
+    if (closed) {
+      LOG.error("Attempt to put event to closed buffer. Rejecting event.");
+      return false;
+    }
+
     try {
       queue.put(event);
       return true;
@@ -66,5 +74,9 @@ public class EventBuffer {
       Thread.currentThread().interrupt();
       return false;
     }
+  }
+
+  public void close() {
+    closed = true;
   }
 }
