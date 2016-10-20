@@ -38,58 +38,58 @@ import org.junit.Test;
 import org.testcontainers.containers.MySQLContainer;
 
 public class MysqlSchemaRepositoryIT {
-    @ClassRule
-    public static MySQLContainer mysql = new MySQLContainer("mysql:5.6").withConfigurationOverride("mysql_gtid_on");
+  @ClassRule
+  public static MySQLContainer mysql = new MySQLContainer("mysql:5.6").withConfigurationOverride("mysql_gtid_on");
 
-    private static DataSource ds;
+  private static DataSource ds;
 
-    @BeforeClass
-    public static void connect() throws Exception {
-        HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl(mysql.getJdbcUrl());
-        hikariConfig.setUsername(mysql.getUsername());
-        hikariConfig.setPassword(mysql.getPassword());
-        hikariConfig.addDataSourceProperty("useSSL", false);
-        hikariConfig.setAutoCommit(false);
-        ds = new HikariDataSource(hikariConfig);
-        Utils.runInitScript("schema.sql", ds);
-    }
+  @BeforeClass
+  public static void connect() throws Exception {
+    HikariConfig hikariConfig = new HikariConfig();
+    hikariConfig.setJdbcUrl(mysql.getJdbcUrl());
+    hikariConfig.setUsername(mysql.getUsername());
+    hikariConfig.setPassword(mysql.getPassword());
+    hikariConfig.addDataSourceProperty("useSSL", false);
+    hikariConfig.setAutoCommit(false);
+    ds = new HikariDataSource(hikariConfig);
+    Utils.runInitScript("schema.sql", ds);
+  }
 
-    @Test
-    public void shouldReturnAbsentForNonExistingTable() {
-        MysqlSchemaRepository repo = new MysqlSchemaRepository(ds);
-        assertThat(repo.getTable(new DatabaseAndTable(mysql.getUsername(), "non_existing")).isPresent(), is(false));
-    }
+  @Test
+  public void shouldReturnAbsentForNonExistingTable() {
+    MysqlSchemaRepository repo = new MysqlSchemaRepository(ds);
+    assertThat(repo.getTable(new DatabaseAndTable(mysql.getUsername(), "non_existing")).isPresent(), is(false));
+  }
 
-    @Test
-    public void shouldReturnSchema() {
-        Table expected = new TableImpl(mysql.getUsername(), "ALL_TYPES", Arrays.asList(
-                new Column("_decimal", MysqlType.DECIMAL),
-                new Column("_tinyint", MysqlType.TINY_INT),
-                new Column("_smallint", MysqlType.SMALL_INT),
-                new Column("_mediumint", MysqlType.MEDIUM_INT),
-                new Column("_float", MysqlType.FLOAT),
-                new Column("_double", MysqlType.DOUBLE),
-                new Column("_timestamp", MysqlType.TIMESTAMP),
-                new Column("_bigint", MysqlType.BIGINT),
-                new Column("_int", MysqlType.INT),
-                new Column("_date", MysqlType.DATE),
-                new Column("_time", MysqlType.TIME),
-                new Column("_datetime", MysqlType.DATETIME),
-                new Column("_year", MysqlType.YEAR),
-                new Column("_varchar", MysqlType.VARCHAR),
-                new Column("_enum", MysqlType.ENUM),
-                new Column("_set", MysqlType.SET),
-                new Column("_tinyblob", MysqlType.TINY_BLOB),
-                new Column("_mediumblob", MysqlType.MEDIUM_BLOB),
-                new Column("_longblob", MysqlType.LONG_BLOB),
-                new Column("_blob", MysqlType.BLOB),
-                new Column("_text", MysqlType.TEXT),
-                new Column("_tinytext", MysqlType.TINY_TEXT),
-                new Column("_mediumtext", MysqlType.MEDIUM_TEXT),
-                new Column("_longtext", MysqlType.LONG_TEXT)
-        ));
-        MysqlSchemaRepository repo = new MysqlSchemaRepository(ds);
-        assertThat(repo.getTable(new DatabaseAndTable(mysql.getUsername(), "ALL_TYPES")).get(), is(expected));
-    }
+  @Test
+  public void shouldReturnSchema() {
+    Table expected = new TableImpl(mysql.getUsername(), "ALL_TYPES", Arrays.asList(
+        new Column("_decimal", MysqlType.DECIMAL),
+        new Column("_tinyint", MysqlType.TINY_INT),
+        new Column("_smallint", MysqlType.SMALL_INT),
+        new Column("_mediumint", MysqlType.MEDIUM_INT),
+        new Column("_float", MysqlType.FLOAT),
+        new Column("_double", MysqlType.DOUBLE),
+        new Column("_timestamp", MysqlType.TIMESTAMP),
+        new Column("_bigint", MysqlType.BIGINT),
+        new Column("_int", MysqlType.INT),
+        new Column("_date", MysqlType.DATE),
+        new Column("_time", MysqlType.TIME),
+        new Column("_datetime", MysqlType.DATETIME),
+        new Column("_year", MysqlType.YEAR),
+        new Column("_varchar", MysqlType.VARCHAR),
+        new Column("_enum", MysqlType.ENUM),
+        new Column("_set", MysqlType.SET),
+        new Column("_tinyblob", MysqlType.TINY_BLOB),
+        new Column("_mediumblob", MysqlType.MEDIUM_BLOB),
+        new Column("_longblob", MysqlType.LONG_BLOB),
+        new Column("_blob", MysqlType.BLOB),
+        new Column("_text", MysqlType.TEXT),
+        new Column("_tinytext", MysqlType.TINY_TEXT),
+        new Column("_mediumtext", MysqlType.MEDIUM_TEXT),
+        new Column("_longtext", MysqlType.LONG_TEXT)
+    ));
+    MysqlSchemaRepository repo = new MysqlSchemaRepository(ds);
+    assertThat(repo.getTable(new DatabaseAndTable(mysql.getUsername(), "ALL_TYPES")).get(), is(expected));
+  }
 }

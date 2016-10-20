@@ -32,39 +32,39 @@ import org.slf4j.LoggerFactory;
  * Events are enriched with corresponding table metadata and offset.
  */
 public class EventBuffer {
-    private static final Logger LOG = LoggerFactory.getLogger(EventBuffer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(EventBuffer.class);
 
-    private final ArrayBlockingQueue<EnrichedEvent> queue;
+  private final ArrayBlockingQueue<EnrichedEvent> queue;
 
-    public EventBuffer(int batchSize) {
-        this.queue = new ArrayBlockingQueue<>(batchSize);
+  public EventBuffer(int batchSize) {
+    this.queue = new ArrayBlockingQueue<>(batchSize);
+  }
+
+  /**
+   * Read next event from buffer with respect to maximum timeout.
+   * @param timeout timeout.
+   * @param unit timeout time unit.
+   * @return next event of null
+   * @throws StageException
+   */
+  public EnrichedEvent poll(long timeout, TimeUnit unit) throws StageException {
+    try {
+      return queue.poll(timeout, unit);
+    } catch (InterruptedException e) {
+      LOG.error(Errors.MYSQL_001.getMessage(), e.toString(), e);
+      Thread.currentThread().interrupt();
+      throw new StageException(Errors.MYSQL_001, e.toString(), e);
     }
+  }
 
-    /**
-     * Read next event from buffer with respect to maximum timeout.
-     * @param timeout timeout.
-     * @param unit timeout time unit.
-     * @return next event of null
-     * @throws StageException
-     */
-    public EnrichedEvent poll(long timeout, TimeUnit unit) throws StageException {
-        try {
-            return queue.poll(timeout, unit);
-        } catch (InterruptedException e) {
-            LOG.error(Errors.MYSQL_001.getMessage(), e.toString(), e);
-            Thread.currentThread().interrupt();
-            throw new StageException(Errors.MYSQL_001, e.toString(), e);
-        }
+  public boolean put(EnrichedEvent event) {
+    try {
+      queue.put(event);
+      return true;
+    } catch (InterruptedException e) {
+      LOG.error("Error adding event to buffer, reason: {}", e.toString(), e);
+      Thread.currentThread().interrupt();
+      return false;
     }
-
-    public boolean put(EnrichedEvent event) {
-        try {
-            queue.put(event);
-            return true;
-        } catch (InterruptedException e) {
-            LOG.error("Error adding event to buffer, reason: {}", e.toString(), e);
-            Thread.currentThread().interrupt();
-            return false;
-        }
-    }
+  }
 }

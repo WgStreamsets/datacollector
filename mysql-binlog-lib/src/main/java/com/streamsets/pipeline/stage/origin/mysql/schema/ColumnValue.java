@@ -22,53 +22,53 @@ package com.streamsets.pipeline.stage.origin.mysql.schema;
 import java.io.Serializable;
 
 public class ColumnValue {
-    private final Column header;
-    private final Serializable value;
+  private final Column header;
+  private final Serializable value;
 
-    public ColumnValue(Column header, Serializable value) {
-        this.header = header;
-        this.value = value;
+  public ColumnValue(Column header, Serializable value) {
+    this.header = header;
+    this.value = value;
+  }
+
+  public Column getHeader() {
+    return header;
+  }
+
+  public Serializable getValue() {
+    return value;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("ColumnValue{");
+    sb.append("header=").append(header);
+    sb.append(", value=").append(value);
+    sb.append('}');
+    return sb.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ColumnValue)) {
+      return false;
     }
 
-    public Column getHeader() {
-        return header;
+    ColumnValue that = (ColumnValue) o;
+
+    if (header != null ? !header.equals(that.header) : that.header != null) {
+      return false;
     }
+    return value != null ? value.equals(that.value) : that.value == null;
 
-    public Serializable getValue() {
-        return value;
-    }
+  }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("ColumnValue{");
-        sb.append("header=").append(header);
-        sb.append(", value=").append(value);
-        sb.append('}');
-        return sb.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ColumnValue)) {
-            return false;
-        }
-
-        ColumnValue that = (ColumnValue) o;
-
-        if (header != null ? !header.equals(that.header) : that.header != null) {
-            return false;
-        }
-        return value != null ? value.equals(that.value) : that.value == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = header != null ? header.hashCode() : 0;
-        result = 31 * result + (value != null ? value.hashCode() : 0);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    int result = header != null ? header.hashCode() : 0;
+    result = 31 * result + (value != null ? value.hashCode() : 0);
+    return result;
+  }
 }

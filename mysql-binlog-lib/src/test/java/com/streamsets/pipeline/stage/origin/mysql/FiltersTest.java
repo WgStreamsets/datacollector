@@ -33,77 +33,77 @@ import com.streamsets.pipeline.stage.origin.mysql.schema.TableImpl;
 import org.junit.Test;
 
 public class FiltersTest {
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldFailOnInvalidFormat() {
-        IgnoreTableFilter filter = new IgnoreTableFilter("T1");
-        filter.apply(event("a", "t"));
-    }
+  @Test(expected = IllegalArgumentException.class)
+  public void shouldFailOnInvalidFormat() {
+    IgnoreTableFilter filter = new IgnoreTableFilter("T1");
+    filter.apply(event("a", "t"));
+  }
 
-    @Test
-    public void shouldFilterOutByDbAndTableName() {
-        IgnoreTableFilter filter = new IgnoreTableFilter("A.T1");
-        assertThat(filter.apply(event("a", "t")), is(Filter.Result.PASS));
-        assertThat(filter.apply(event("a", "T1")), is(Filter.Result.DISCARD));
-        assertThat(filter.apply(event("A", "t1")), is(Filter.Result.DISCARD));
-        assertThat(filter.apply(event("B", "T1")), is(Filter.Result.PASS));
-        assertThat(filter.apply(event(" a", " t1 ")), is(Filter.Result.DISCARD));
-    }
+  @Test
+  public void shouldFilterOutByDbAndTableName() {
+    IgnoreTableFilter filter = new IgnoreTableFilter("A.T1");
+    assertThat(filter.apply(event("a", "t")), is(Filter.Result.PASS));
+    assertThat(filter.apply(event("a", "T1")), is(Filter.Result.DISCARD));
+    assertThat(filter.apply(event("A", "t1")), is(Filter.Result.DISCARD));
+    assertThat(filter.apply(event("B", "T1")), is(Filter.Result.PASS));
+    assertThat(filter.apply(event(" a", " t1 ")), is(Filter.Result.DISCARD));
+  }
 
-    @Test
-    public void shouldFilterOutByTableNames() {
-        Filter filter = new IgnoreTableFilter("A.T1").and(
-                new IgnoreTableFilter("B.T2")
-        );
-        assertThat(filter.apply(event("a", "t")), is(Filter.Result.PASS));
-        assertThat(filter.apply(event("a", "T1")), is(Filter.Result.DISCARD));
-        assertThat(filter.apply(event("a", "T2")), is(Filter.Result.PASS));
-        assertThat(filter.apply(event("B", "t2")), is(Filter.Result.DISCARD));
-    }
+  @Test
+  public void shouldFilterOutByTableNames() {
+    Filter filter = new IgnoreTableFilter("A.T1").and(
+        new IgnoreTableFilter("B.T2")
+    );
+    assertThat(filter.apply(event("a", "t")), is(Filter.Result.PASS));
+    assertThat(filter.apply(event("a", "T1")), is(Filter.Result.DISCARD));
+    assertThat(filter.apply(event("a", "T2")), is(Filter.Result.PASS));
+    assertThat(filter.apply(event("B", "t2")), is(Filter.Result.DISCARD));
+  }
 
 
-    @Test
-    public void shouldFilterOutByTableNameWithWildcards() {
-        Filter filter = new IgnoreTableFilter("A%.T%1");
-        assertThat(filter.apply(event("a", "t")), is(Filter.Result.PASS));
-        assertThat(filter.apply(event("a", "t12")), is(Filter.Result.PASS));
-        assertThat(filter.apply(event("a", "T1")), is(Filter.Result.DISCARD));
-        assertThat(filter.apply(event("a", "Ta1")), is(Filter.Result.DISCARD));
-        assertThat(filter.apply(event("a", "Ta2221")), is(Filter.Result.DISCARD));
-        assertThat(filter.apply(event("ab", "Ta2221")), is(Filter.Result.DISCARD));
-    }
+  @Test
+  public void shouldFilterOutByTableNameWithWildcards() {
+    Filter filter = new IgnoreTableFilter("A%.T%1");
+    assertThat(filter.apply(event("a", "t")), is(Filter.Result.PASS));
+    assertThat(filter.apply(event("a", "t12")), is(Filter.Result.PASS));
+    assertThat(filter.apply(event("a", "T1")), is(Filter.Result.DISCARD));
+    assertThat(filter.apply(event("a", "Ta1")), is(Filter.Result.DISCARD));
+    assertThat(filter.apply(event("a", "Ta2221")), is(Filter.Result.DISCARD));
+    assertThat(filter.apply(event("ab", "Ta2221")), is(Filter.Result.DISCARD));
+  }
 
-    @Test
-    public void shouldIncludeByDbAndTableName() {
-        Filter filter = new IncludeTableFilter("A%.T%1");
-        assertThat(filter.apply(event("a", "t")), is(Filter.Result.DISCARD));
-        assertThat(filter.apply(event("a", "t21")), is(Filter.Result.PASS));
-    }
+  @Test
+  public void shouldIncludeByDbAndTableName() {
+    Filter filter = new IncludeTableFilter("A%.T%1");
+    assertThat(filter.apply(event("a", "t")), is(Filter.Result.DISCARD));
+    assertThat(filter.apply(event("a", "t21")), is(Filter.Result.PASS));
+  }
 
-    @Test
-    public void shouldIncludeByDbAndTableNames() {
-        Filter filter = new IncludeTableFilter("A%.T%1").or(
-                new IncludeTableFilter("B.t2")
-        );
-        assertThat(filter.apply(event("a", "t21")), is(Filter.Result.PASS));
-        assertThat(filter.apply(event("b", "t2")), is(Filter.Result.PASS));
-        assertThat(filter.apply(event("b", "t3")), is(Filter.Result.DISCARD));
-    }
+  @Test
+  public void shouldIncludeByDbAndTableNames() {
+    Filter filter = new IncludeTableFilter("A%.T%1").or(
+        new IncludeTableFilter("B.t2")
+    );
+    assertThat(filter.apply(event("a", "t21")), is(Filter.Result.PASS));
+    assertThat(filter.apply(event("b", "t2")), is(Filter.Result.PASS));
+    assertThat(filter.apply(event("b", "t3")), is(Filter.Result.DISCARD));
+  }
 
-    @Test
-    public void shouldIncludeAndIgnoreByDbAndTableNames() {
-        Filter filter = new IncludeTableFilter("A%.T1").or(
-                new IncludeTableFilter("B.t2")
-        ).and(
-                new IgnoreTableFilter("a.t1")
-        );
-        assertThat(filter.apply(event("b", "t2")), is(Filter.Result.PASS));
-        assertThat(filter.apply(event("b", "t3")), is(Filter.Result.DISCARD));
-        assertThat(filter.apply(event("a", "t1")), is(Filter.Result.DISCARD));
-    }
+  @Test
+  public void shouldIncludeAndIgnoreByDbAndTableNames() {
+    Filter filter = new IncludeTableFilter("A%.T1").or(
+        new IncludeTableFilter("B.t2")
+    ).and(
+        new IgnoreTableFilter("a.t1")
+    );
+    assertThat(filter.apply(event("b", "t2")), is(Filter.Result.PASS));
+    assertThat(filter.apply(event("b", "t3")), is(Filter.Result.DISCARD));
+    assertThat(filter.apply(event("a", "t1")), is(Filter.Result.DISCARD));
+  }
 
-    private EnrichedEvent event(String db, String tableName) {
-        Table table = new TableImpl(db, tableName, Collections.<Column>emptyList());
-        return new EnrichedEvent(null, table, null);
-    }
+  private EnrichedEvent event(String db, String tableName) {
+    Table table = new TableImpl(db, tableName, Collections.<Column>emptyList());
+    return new EnrichedEvent(null, table, null);
+  }
 }
 

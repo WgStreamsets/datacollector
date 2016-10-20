@@ -26,8 +26,7 @@ import com.streamsets.pipeline.api.Label;
 public enum Groups implements Label {
   MYSQL("MySQL Binary Log"),
   CREDENTIALS("Credentials"),
-  ADVANCED("Advanced"),
-  ;
+  ADVANCED("Advanced"),;
 
   private final String label;
 

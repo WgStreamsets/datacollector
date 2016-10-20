@@ -22,25 +22,25 @@ package com.streamsets.pipeline.stage.origin.mysql;
 import com.github.shyiko.mysql.binlog.event.Event;
 
 public class EventError {
-    private final Event event;
-    private final SourceOffset offset;
-    private final Exception exception;
+  private final Event event;
+  private final SourceOffset offset;
+  private final Exception exception;
 
-    public EventError(Event event, SourceOffset offset, Exception exception) {
-        this.event = event;
-        this.offset = offset;
-        this.exception = exception;
-    }
+  public EventError(Event event, SourceOffset offset, Exception exception) {
+    this.event = event;
+    this.offset = offset;
+    this.exception = exception;
+  }
 
-    public Event getEvent() {
-        return event;
-    }
+  public Event getEvent() {
+    return event;
+  }
 
-    public Exception getException() {
-        return exception;
-    }
+  public Exception getException() {
+    return exception;
+  }
 
-    public SourceOffset getOffset() {
-        return offset;
-    }
+  public SourceOffset getOffset() {
+    return offset;
+  }
 }

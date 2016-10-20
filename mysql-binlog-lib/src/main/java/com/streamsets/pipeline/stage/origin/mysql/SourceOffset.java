@@ -25,15 +25,15 @@ import com.github.shyiko.mysql.binlog.BinaryLogClient;
  * Offset in MySql binlog.
  */
 public interface SourceOffset {
-    /**
-     * Format to string.
-     * @return
-     */
-    String format();
+  /**
+   * Format to string.
+   * @return
+   */
+  String format();
 
-    /**
-     * Set client position to this offset.
-     * @param client
-     */
-    void positionClient(BinaryLogClient client);
+  /**
+   * Set client position to this offset.
+   * @param client
+   */
+  void positionClient(BinaryLogClient client);
 }

@@ -20,5 +20,5 @@
 package com.streamsets.pipeline.stage.origin.mysql;
 
 public interface SourceOffsetFactory {
-    SourceOffset create(String offset);
+  SourceOffset create(String offset);
 }

@@ -22,23 +22,23 @@ package com.streamsets.pipeline.stage.origin.mysql;
 import com.streamsets.pipeline.api.*;
 
 @StageDef(
-        version = 1,
-        label = "MySQL Binary Log",
-        description = "Reads MySQL binary log from MySQL server.",
-        icon = "mysql.png",
-        execution = ExecutionMode.STANDALONE,
-        resetOffset = true,
-        recordsByRef = true,
-        onlineHelpRefUrl = ""
+    version = 1,
+    label = "MySQL Binary Log",
+    description = "Reads MySQL binary log from MySQL server.",
+    icon = "mysql.png",
+    execution = ExecutionMode.STANDALONE,
+    resetOffset = true,
+    recordsByRef = true,
+    onlineHelpRefUrl = ""
 )
 @ConfigGroups(value = Groups.class)
 @GenerateResourceBundle
 public class MysqlDSource extends MysqlSource {
-    @ConfigDefBean
-    public MysqlSourceConfig config;
+  @ConfigDefBean
+  public MysqlSourceConfig config;
 
-    @Override
-    public MysqlSourceConfig getConfig() {
-        return config;
-    }
+  @Override
+  public MysqlSourceConfig getConfig() {
+    return config;
+  }
 }

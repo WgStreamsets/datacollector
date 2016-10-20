@@ -20,9 +20,9 @@
 package com.streamsets.pipeline.stage.origin.mysql.schema;
 
 public interface Table {
-    Column getColumn(int position);
+  Column getColumn(int position);
 
-    String getDatabase();
+  String getDatabase();
 
-    String getName();
+  String getName();
 }

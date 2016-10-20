@@ -23,5 +23,5 @@ package com.streamsets.pipeline.stage.origin.mysql;
 import com.streamsets.pipeline.api.Record;
 
 public interface RecordFactory {
-    Record create(String recordSourceId);
+  Record create(String recordSourceId);
 }

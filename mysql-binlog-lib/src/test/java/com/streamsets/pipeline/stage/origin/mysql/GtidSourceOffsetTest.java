@@ -27,43 +27,43 @@ import java.util.UUID;
 import org.junit.Test;
 
 public class GtidSourceOffsetTest {
-    private String gtidSet1 = UUID.randomUUID() + ":1-10";
-    private String gtid1 = UUID.randomUUID() + ":100";
-    private String gtid2 = UUID.randomUUID() + ":400";
+  private String gtidSet1 = UUID.randomUUID() + ":1-10";
+  private String gtid1 = UUID.randomUUID() + ":100";
+  private String gtid2 = UUID.randomUUID() + ":400";
 
-    @Test
-    public void shouldAddIncompleteTransactions() {
-        GtidSourceOffset offset = new GtidSourceOffset(gtidSet1);
-        assertThat(offset.incompleteTransactionsContain(gtid1, 100), is(false));
-        GtidSourceOffset offset1 = offset.withIncompleteTransaction(gtid1, 300);
-        assertThat(offset1.getGtid(), is(gtid1));
-        assertThat(offset1.getSeqNo(), is(300l));
-        assertThat(offset1.incompleteTransactionsContain(gtid1, 100), is(true));
-        assertThat(offset1.incompleteTransactionsContain(gtid1, 300), is(true));
-        assertThat(offset1.incompleteTransactionsContain(gtid1, 301), is(false));
-        assertThat(offset1.incompleteTransactionsContain(gtid2, 100), is(false));
-    }
+  @Test
+  public void shouldAddIncompleteTransactions() {
+    GtidSourceOffset offset = new GtidSourceOffset(gtidSet1);
+    assertThat(offset.incompleteTransactionsContain(gtid1, 100), is(false));
+    GtidSourceOffset offset1 = offset.withIncompleteTransaction(gtid1, 300);
+    assertThat(offset1.getGtid(), is(gtid1));
+    assertThat(offset1.getSeqNo(), is(300l));
+    assertThat(offset1.incompleteTransactionsContain(gtid1, 100), is(true));
+    assertThat(offset1.incompleteTransactionsContain(gtid1, 300), is(true));
+    assertThat(offset1.incompleteTransactionsContain(gtid1, 301), is(false));
+    assertThat(offset1.incompleteTransactionsContain(gtid2, 100), is(false));
+  }
 
-    @Test
-    public void shouldFinishTx() {
-        GtidSourceOffset offset = new GtidSourceOffset(gtidSet1).withIncompleteTransaction(gtid1, 300);
-        assertThat(offset.incompleteTransactionsContain(gtid1, 100), is(true));
-        GtidSourceOffset offset1 = offset.finishTransaction(gtid1);
-        assertThat(offset1.incompleteTransactionsContain(gtid1, 100), is(false));
-    }
+  @Test
+  public void shouldFinishTx() {
+    GtidSourceOffset offset = new GtidSourceOffset(gtidSet1).withIncompleteTransaction(gtid1, 300);
+    assertThat(offset.incompleteTransactionsContain(gtid1, 100), is(true));
+    GtidSourceOffset offset1 = offset.finishTransaction(gtid1);
+    assertThat(offset1.incompleteTransactionsContain(gtid1, 100), is(false));
+  }
 
-    @Test
-    public void shouldParseFromString() {
-        GtidSourceOffset offset = new GtidSourceOffset(gtidSet1)
-                .withIncompleteTransaction(gtid1, 300)
-                .withIncompleteTransaction(gtid2, 500);
-        String str = offset.format();
-        GtidSourceOffset offset1 = GtidSourceOffset.parse(str);
-        assertThat(offset1, is(offset));
-    }
+  @Test
+  public void shouldParseFromString() {
+    GtidSourceOffset offset = new GtidSourceOffset(gtidSet1)
+        .withIncompleteTransaction(gtid1, 300)
+        .withIncompleteTransaction(gtid2, 500);
+    String str = offset.format();
+    GtidSourceOffset offset1 = GtidSourceOffset.parse(str);
+    assertThat(offset1, is(offset));
+  }
 
-    @Test
-    public void shouldParseFromSimpleString() {
-        assertThat(new GtidSourceOffset(gtidSet1), is(GtidSourceOffset.parse(gtidSet1)));
-    }
+  @Test
+  public void shouldParseFromSimpleString() {
+    assertThat(new GtidSourceOffset(gtidSet1), is(GtidSourceOffset.parse(gtidSet1)));
+  }
 }

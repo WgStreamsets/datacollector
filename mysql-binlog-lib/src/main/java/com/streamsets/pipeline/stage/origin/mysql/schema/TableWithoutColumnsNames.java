@@ -25,60 +25,60 @@ package com.streamsets.pipeline.stage.origin.mysql.schema;
  * and data type {@link MysqlType#TEXT}.
  */
 public class TableWithoutColumnsNames implements Table {
-    private final String database;
-    private final String name;
+  private final String database;
+  private final String name;
 
-    public TableWithoutColumnsNames(String database, String name) {
-        this.database = database;
-        this.name = name;
+  public TableWithoutColumnsNames(String database, String name) {
+    this.database = database;
+    this.name = name;
+  }
+
+  @Override
+  public Column getColumn(int position) {
+    return new Column(String.format("col_%d", position), MysqlType.TEXT);
+  }
+
+  @Override
+  public String getDatabase() {
+    return database;
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("TableWithoutColumnsNames{");
+    sb.append("database='").append(database).append('\'');
+    sb.append(", name='").append(name).append('\'');
+    sb.append('}');
+    return sb.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof TableWithoutColumnsNames)) {
+      return false;
     }
 
-    @Override
-    public Column getColumn(int position) {
-        return new Column(String.format("col_%d", position), MysqlType.TEXT);
+    TableWithoutColumnsNames that = (TableWithoutColumnsNames) o;
+
+    if (database != null ? !database.equals(that.database) : that.database != null) {
+      return false;
     }
+    return name != null ? name.equals(that.name) : that.name == null;
 
-    @Override
-    public String getDatabase() {
-        return database;
-    }
+  }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("TableWithoutColumnsNames{");
-        sb.append("database='").append(database).append('\'');
-        sb.append(", name='").append(name).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof TableWithoutColumnsNames)) {
-            return false;
-        }
-
-        TableWithoutColumnsNames that = (TableWithoutColumnsNames) o;
-
-        if (database != null ? !database.equals(that.database) : that.database != null) {
-            return false;
-        }
-        return name != null ? name.equals(that.name) : that.name == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = database != null ? database.hashCode() : 0;
-        result = 31 * result + (name != null ? name.hashCode() : 0);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    int result = database != null ? database.hashCode() : 0;
+    result = 31 * result + (name != null ? name.hashCode() : 0);
+    return result;
+  }
 }

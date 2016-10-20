@@ -26,44 +26,46 @@ import java.sql.Statement;
 import javax.sql.DataSource;
 
 public class Util {
-    private Util() {}
-    /**
-     * Get global variable value.
-     * @param dataSource
-     * @param variable
-     * @return global variable value of empty string.
-     * @throws SQLException
-     */
-    public static String getGlobalVariable(DataSource dataSource, String variable) throws SQLException {
-        try (Connection conn = dataSource.getConnection()) {
-            try (Statement stmt = conn.createStatement()) {
-                ResultSet rs = stmt.executeQuery(String.format("show global variables like '%s'", variable));
-                if (rs.next()) {
-                    return rs.getString(2);
-                } else {
-                    return "";
-                }
-            }
+  private Util() {
+  }
+
+  /**
+   * Get global variable value.
+   * @param dataSource
+   * @param variable
+   * @return global variable value of empty string.
+   * @throws SQLException
+   */
+  public static String getGlobalVariable(DataSource dataSource, String variable) throws SQLException {
+    try (Connection conn = dataSource.getConnection()) {
+      try (Statement stmt = conn.createStatement()) {
+        ResultSet rs = stmt.executeQuery(String.format("show global variables like '%s'", variable));
+        if (rs.next()) {
+          return rs.getString(2);
+        } else {
+          return "";
         }
+      }
     }
+  }
 
-    /**
-     * Get gtidset executed by server.
-     * @param dataSource
-     * @return
-     * @throws SQLException
-     */
-    public static String getServerGtidExecuted(DataSource dataSource) throws SQLException {
-        return getGlobalVariable(dataSource, "gtid_executed");
-    }
+  /**
+   * Get gtidset executed by server.
+   * @param dataSource
+   * @return
+   * @throws SQLException
+   */
+  public static String getServerGtidExecuted(DataSource dataSource) throws SQLException {
+    return getGlobalVariable(dataSource, "gtid_executed");
+  }
 
-    /**
-     * Get gtidset purged from binlog.
-     * @param dataSource
-     * @return
-     * @throws SQLException
-     */
-    public static String getServerGtidPurged(DataSource dataSource) throws SQLException {
-        return getGlobalVariable(dataSource, "gtid_purged");
-    }
+  /**
+   * Get gtidset purged from binlog.
+   * @param dataSource
+   * @return
+   * @throws SQLException
+   */
+  public static String getServerGtidPurged(DataSource dataSource) throws SQLException {
+    return getGlobalVariable(dataSource, "gtid_purged");
+  }
 }

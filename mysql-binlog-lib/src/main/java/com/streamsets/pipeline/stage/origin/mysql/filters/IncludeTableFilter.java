@@ -28,44 +28,44 @@ import com.streamsets.pipeline.stage.origin.mysql.EnrichedEvent;
  * Database and table name are case-insensitive.
  */
 public class IncludeTableFilter implements Filter {
-    private final Pattern tableName;
-    private final Pattern dbName;
+  private final Pattern tableName;
+  private final Pattern dbName;
 
-    public IncludeTableFilter(String dbAndTable) {
-        int i = dbAndTable.indexOf('.');
-        if (i == -1) {
-            throw new IllegalArgumentException("IncludeTableFilter should have format 'db.tableName'");
-        }
-        String db = dbAndTable.substring(0, i);
-        String table = dbAndTable.substring(i + 1, dbAndTable.length());
-        tableName = Pattern.compile(table.trim().toLowerCase().replaceAll("%", ".*"));
-        dbName = Pattern.compile(db.trim().toLowerCase().replaceAll("%", ".*"));
+  public IncludeTableFilter(String dbAndTable) {
+    int i = dbAndTable.indexOf('.');
+    if (i == -1) {
+      throw new IllegalArgumentException("IncludeTableFilter should have format 'db.tableName'");
     }
+    String db = dbAndTable.substring(0, i);
+    String table = dbAndTable.substring(i + 1, dbAndTable.length());
+    tableName = Pattern.compile(table.trim().toLowerCase().replaceAll("%", ".*"));
+    dbName = Pattern.compile(db.trim().toLowerCase().replaceAll("%", ".*"));
+  }
 
-    @Override
-    public Result apply(EnrichedEvent event) {
-        if (dbName.matcher(event.getTable().getDatabase().toLowerCase().trim()).matches() &&
-                tableName.matcher(event.getTable().getName().toLowerCase().trim()).matches()) {
-            return Result.PASS;
-        }
-        return Result.DISCARD;
+  @Override
+  public Result apply(EnrichedEvent event) {
+    if (dbName.matcher(event.getTable().getDatabase().toLowerCase().trim()).matches() &&
+        tableName.matcher(event.getTable().getName().toLowerCase().trim()).matches()) {
+      return Result.PASS;
     }
+    return Result.DISCARD;
+  }
 
-    @Override
-    public Filter and(Filter filter) {
-        return Filters.and(this, filter);
-    }
+  @Override
+  public Filter and(Filter filter) {
+    return Filters.and(this, filter);
+  }
 
-    @Override
-    public Filter or(Filter filter) {
-        return Filters.or(this, filter);
-    }
+  @Override
+  public Filter or(Filter filter) {
+    return Filters.or(this, filter);
+  }
 
-    @Override
-    public String toString() {
-        return "IncludeTableFilter{" +
-                "tableName=" + tableName +
-                ", dbName=" + dbName +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "IncludeTableFilter{" +
+        "tableName=" + tableName +
+        ", dbName=" + dbName +
+        '}';
+  }
 }

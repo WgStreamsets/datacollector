@@ -20,53 +20,53 @@
 package com.streamsets.pipeline.stage.origin.mysql.schema;
 
 public class DatabaseAndTable {
-    private final String database;
-    private final String table;
+  private final String database;
+  private final String table;
 
-    public DatabaseAndTable(String database, String table) {
-        this.database = database;
-        this.table = table;
+  public DatabaseAndTable(String database, String table) {
+    this.database = database;
+    this.table = table;
+  }
+
+  public String getDatabase() {
+    return database;
+  }
+
+  public String getTable() {
+    return table;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("DatabaseAndTable{");
+    sb.append("database='").append(database).append('\'');
+    sb.append(", table='").append(table).append('\'');
+    sb.append('}');
+    return sb.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof DatabaseAndTable)) {
+      return false;
     }
 
-    public String getDatabase() {
-        return database;
+    DatabaseAndTable that = (DatabaseAndTable) o;
+
+    if (database != null ? !database.equals(that.database) : that.database != null) {
+      return false;
     }
+    return table != null ? table.equals(that.table) : that.table == null;
 
-    public String getTable() {
-        return table;
-    }
+  }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("DatabaseAndTable{");
-        sb.append("database='").append(database).append('\'');
-        sb.append(", table='").append(table).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof DatabaseAndTable)) {
-            return false;
-        }
-
-        DatabaseAndTable that = (DatabaseAndTable) o;
-
-        if (database != null ? !database.equals(that.database) : that.database != null) {
-            return false;
-        }
-        return table != null ? table.equals(that.table) : that.table == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = database != null ? database.hashCode() : 0;
-        result = 31 * result + (table != null ? table.hashCode() : 0);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    int result = database != null ? database.hashCode() : 0;
+    result = 31 * result + (table != null ? table.hashCode() : 0);
+    return result;
+  }
 }

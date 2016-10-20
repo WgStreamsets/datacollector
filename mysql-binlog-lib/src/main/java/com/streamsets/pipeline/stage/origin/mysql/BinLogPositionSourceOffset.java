@@ -22,67 +22,67 @@ package com.streamsets.pipeline.stage.origin.mysql;
 import com.github.shyiko.mysql.binlog.BinaryLogClient;
 
 public class BinLogPositionSourceOffset implements SourceOffset {
-    private final long position;
-    private final String filename;
+  private final long position;
+  private final String filename;
 
-    public BinLogPositionSourceOffset(String filename, long position) {
-        this.filename = filename;
-        this.position = position;
+  public BinLogPositionSourceOffset(String filename, long position) {
+    this.filename = filename;
+    this.position = position;
+  }
+
+  @Override
+  public String format() {
+    return String.format("%s:%s", filename, position);
+  }
+
+  @Override
+  public void positionClient(BinaryLogClient client) {
+    client.setBinlogFilename(filename);
+    client.setBinlogPosition(position);
+  }
+
+  public long getPosition() {
+    return position;
+  }
+
+  public String getFilename() {
+    return filename;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    @Override
-    public String format() {
-        return String.format("%s:%s", filename, position);
+    BinLogPositionSourceOffset that = (BinLogPositionSourceOffset) o;
+
+    if (position != that.position) {
+      return false;
     }
+    return filename != null ? filename.equals(that.filename) : that.filename == null;
 
-    @Override
-    public void positionClient(BinaryLogClient client) {
-        client.setBinlogFilename(filename);
-        client.setBinlogPosition(position);
-    }
+  }
 
-    public long getPosition() {
-        return position;
-    }
+  @Override
+  public int hashCode() {
+    int result = (int) (position ^ (position >>> 32));
+    result = 31 * result + (filename != null ? filename.hashCode() : 0);
+    return result;
+  }
 
-    public String getFilename() {
-        return filename;
-    }
+  @Override
+  public String toString() {
+    return "BinLogPositionSourceOffset{" + format() + "}";
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        BinLogPositionSourceOffset that = (BinLogPositionSourceOffset) o;
-
-        if (position != that.position) {
-            return false;
-        }
-        return filename != null ? filename.equals(that.filename) : that.filename == null;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = (int) (position ^ (position >>> 32));
-        result = 31 * result + (filename != null ? filename.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "BinLogPositionSourceOffset{" + format() + "}";
-    }
-
-    public static BinLogPositionSourceOffset parse(String offset) {
-        String[] a = offset.split(":");
-        String filename = a[0];
-        long position = Long.parseLong(a[1]);
-        return new BinLogPositionSourceOffset(filename, position);
-    }
+  public static BinLogPositionSourceOffset parse(String offset) {
+    String[] a = offset.split(":");
+    String filename = a[0];
+    long position = Long.parseLong(a[1]);
+    return new BinLogPositionSourceOffset(filename, position);
+  }
 }

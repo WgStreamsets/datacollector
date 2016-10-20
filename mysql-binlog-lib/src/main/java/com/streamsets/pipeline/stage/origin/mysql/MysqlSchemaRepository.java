@@ -42,76 +42,76 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MysqlSchemaRepository {
-    private static final String TABLE_SCHEMA_SQL =
-        "SELECT COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS " +
-            "WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
+  private static final String TABLE_SCHEMA_SQL =
+      "SELECT COLUMN_NAME, COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS " +
+          "WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? ORDER BY ORDINAL_POSITION";
 
-    private static final Logger LOG = LoggerFactory.getLogger(MysqlSchemaRepository.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MysqlSchemaRepository.class);
 
-    private final DataSource dataSource;
+  private final DataSource dataSource;
 
-    public MysqlSchemaRepository(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
+  public MysqlSchemaRepository(DataSource dataSource) {
+    this.dataSource = dataSource;
+  }
 
-    private final LoadingCache<DatabaseAndTable, Optional<? extends Table>> cache = CacheBuilder.newBuilder()
-            .build(new CacheLoader<DatabaseAndTable, Optional<? extends Table>>() {
-                @Override
-                public Optional<? extends Table> load(DatabaseAndTable databaseAndTable) throws Exception {
-                    return loadTable(databaseAndTable);
-                }
-            });
-
-    public Optional<? extends Table> getTable(DatabaseAndTable table) {
-        try {
-            return cache.get(table);
-        } catch (ExecutionException | UncheckedExecutionException e) {
-            throw new SchemaLoadException(e.getMessage(), e.getCause() != null ? e.getCause() : e);
+  private final LoadingCache<DatabaseAndTable, Optional<? extends Table>> cache = CacheBuilder.newBuilder()
+      .build(new CacheLoader<DatabaseAndTable, Optional<? extends Table>>() {
+        @Override
+        public Optional<? extends Table> load(DatabaseAndTable databaseAndTable) throws Exception {
+          return loadTable(databaseAndTable);
         }
-    }
+      });
 
-    public void evictAll() {
-        cache.invalidateAll();
+  public Optional<? extends Table> getTable(DatabaseAndTable table) {
+    try {
+      return cache.get(table);
+    } catch (ExecutionException | UncheckedExecutionException e) {
+      throw new SchemaLoadException(e.getMessage(), e.getCause() != null ? e.getCause() : e);
     }
+  }
 
-    public void evict(String database, String table) {
-        cache.invalidate(new DatabaseAndTable(database, table));
-    }
+  public void evictAll() {
+    cache.invalidateAll();
+  }
 
-    private Optional<? extends Table> loadTable(DatabaseAndTable databaseAndTable) {
-        try (Connection conn = dataSource.getConnection()) {
-            try (PreparedStatement stmt = conn.prepareStatement(TABLE_SCHEMA_SQL)) {
-                stmt.setString(1, databaseAndTable.getDatabase());
-                stmt.setString(2, databaseAndTable.getTable());
-                ResultSet rs = stmt.executeQuery();
-                List<Column> columns = new ArrayList<>();
-                while (rs.next()) {
-                    String name = rs.getString(1);
-                    String type = rs.getString(2);
-                    columns.add(new Column(name, MysqlType.of(type)));
-                }
-                if (columns.isEmpty()) {
-                    return Optional.absent();
-                } else {
-                    return Optional.of(
-                            new TableImpl(databaseAndTable.getDatabase(), databaseAndTable.getTable(), columns)
-                    );
-                }
-            }
-        } catch (SQLException e) {
-            String err = String.format(
-                "Error getting '%s.%s' schema",
-                databaseAndTable.getDatabase(),
-                databaseAndTable.getTable()
-            );
-            LOG.error(err, e);
-            throw new SchemaLoadException(err, e);
+  public void evict(String database, String table) {
+    cache.invalidate(new DatabaseAndTable(database, table));
+  }
+
+  private Optional<? extends Table> loadTable(DatabaseAndTable databaseAndTable) {
+    try (Connection conn = dataSource.getConnection()) {
+      try (PreparedStatement stmt = conn.prepareStatement(TABLE_SCHEMA_SQL)) {
+        stmt.setString(1, databaseAndTable.getDatabase());
+        stmt.setString(2, databaseAndTable.getTable());
+        ResultSet rs = stmt.executeQuery();
+        List<Column> columns = new ArrayList<>();
+        while (rs.next()) {
+          String name = rs.getString(1);
+          String type = rs.getString(2);
+          columns.add(new Column(name, MysqlType.of(type)));
         }
-    }
-
-    public static class SchemaLoadException extends RuntimeException {
-        public SchemaLoadException(String message, Throwable cause) {
-            super(message, cause);
+        if (columns.isEmpty()) {
+          return Optional.absent();
+        } else {
+          return Optional.of(
+              new TableImpl(databaseAndTable.getDatabase(), databaseAndTable.getTable(), columns)
+          );
         }
+      }
+    } catch (SQLException e) {
+      String err = String.format(
+          "Error getting '%s.%s' schema",
+          databaseAndTable.getDatabase(),
+          databaseAndTable.getTable()
+      );
+      LOG.error(err, e);
+      throw new SchemaLoadException(err, e);
     }
+  }
+
+  public static class SchemaLoadException extends RuntimeException {
+    public SchemaLoadException(String message, Throwable cause) {
+      super(message, cause);
+    }
+  }
 }

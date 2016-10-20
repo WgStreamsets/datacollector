@@ -32,25 +32,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Utils {
-    private Utils() {}
+  private Utils() {
+  }
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Utils.class);
+  private static final Logger LOGGER = LoggerFactory.getLogger(Utils.class);
 
-    public static void runInitScript(String initScriptPath, DataSource dataSource) throws SQLException {
-        try(Connection conn = dataSource.getConnection()) {
-            try {
-                URL resource = Resources.getResource(initScriptPath);
-                String sql = Resources.toString(resource, Charsets.UTF_8);
-                ScriptUtils.executeSqlScript(conn, initScriptPath, sql);
-                conn.commit();
-                conn.close();
-            } catch (IOException | IllegalArgumentException e) {
-                LOGGER.warn("Could not load classpath init script: {}", initScriptPath);
-                throw new SQLException("Could not load classpath init script: " + initScriptPath, e);
-            } catch (ScriptException e) {
-                LOGGER.error("Error while executing init script: {}", initScriptPath, e);
-                throw new SQLException("Error while executing init script: " + initScriptPath, e);
-            }
-        }
+  public static void runInitScript(String initScriptPath, DataSource dataSource) throws SQLException {
+    try (Connection conn = dataSource.getConnection()) {
+      try {
+        URL resource = Resources.getResource(initScriptPath);
+        String sql = Resources.toString(resource, Charsets.UTF_8);
+        ScriptUtils.executeSqlScript(conn, initScriptPath, sql);
+        conn.commit();
+        conn.close();
+      } catch (IOException | IllegalArgumentException e) {
+        LOGGER.warn("Could not load classpath init script: {}", initScriptPath);
+        throw new SQLException("Could not load classpath init script: " + initScriptPath, e);
+      } catch (ScriptException e) {
+        LOGGER.error("Error while executing init script: {}", initScriptPath, e);
+        throw new SQLException("Error while executing init script: " + initScriptPath, e);
+      }
     }
+  }
 }

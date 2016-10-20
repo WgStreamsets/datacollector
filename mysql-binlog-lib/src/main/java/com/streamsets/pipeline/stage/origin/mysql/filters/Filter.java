@@ -25,20 +25,22 @@ import com.streamsets.pipeline.stage.origin.mysql.EnrichedEvent;
  * Filters out certain events.
  */
 public interface Filter {
-    /**
-     * Returns <code>true</code> if event passes the filter and should go on, or <code>false</code>
-     * if event is filtered out.
-     * @param event
-     * @return {@link Result#PASS} if event passes the filter and should go on, {@link Result#DISCARD} event is filtered out.
-     */
-    Result apply(EnrichedEvent event);
+  /**
+   * Returns <code>true</code> if event passes the filter and should go on, or <code>false</code>
+   * if event is filtered out.
+   *
+   * @param event
+   * @return {@link Result#PASS} if event passes the filter and should go on,
+   * {@link Result#DISCARD} event is filtered out.
+   */
+  Result apply(EnrichedEvent event);
 
-    Filter and(Filter filter);
+  Filter and(Filter filter);
 
-    Filter or(Filter filter);
+  Filter or(Filter filter);
 
-    enum Result {
-        PASS,
-        DISCARD
-    }
+  enum Result {
+    PASS,
+    DISCARD
+  }
 }

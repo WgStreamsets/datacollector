@@ -25,53 +25,53 @@ package com.streamsets.pipeline.stage.origin.mysql.schema;
  * Note: column name is case-sensitive.
  */
 public class Column {
-    private final String name;
-    private final MysqlType type;
+  private final String name;
+  private final MysqlType type;
 
-    public Column(String name, MysqlType type) {
-        this.name = name;
-        this.type = type;
+  public Column(String name, MysqlType type) {
+    this.name = name;
+    this.type = type;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public MysqlType getType() {
+    return type;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("Column{");
+    sb.append("name='").append(name).append('\'');
+    sb.append(", type=").append(type);
+    sb.append('}');
+    return sb.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Column)) {
+      return false;
     }
 
-    public String getName() {
-        return name;
+    Column column = (Column) o;
+
+    if (name != null ? !name.equals(column.name) : column.name != null) {
+      return false;
     }
+    return type == column.type;
 
-    public MysqlType getType() {
-        return type;
-    }
+  }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder("Column{");
-        sb.append("name='").append(name).append('\'');
-        sb.append(", type=").append(type);
-        sb.append('}');
-        return sb.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof Column)) {
-            return false;
-        }
-
-        Column column = (Column) o;
-
-        if (name != null ? !name.equals(column.name) : column.name != null) {
-            return false;
-        }
-        return type == column.type;
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        return result;
-    }
+  @Override
+  public int hashCode() {
+    int result = name != null ? name.hashCode() : 0;
+    result = 31 * result + (type != null ? type.hashCode() : 0);
+    return result;
+  }
 }
