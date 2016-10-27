@@ -19,8 +19,7 @@
  */
 package com.streamsets.pipeline.stage.origin.mysql;
 
-import static com.streamsets.pipeline.api.Field.create;
-import static com.streamsets.pipeline.api.Field.createDatetime;
+import static com.streamsets.pipeline.api.Field.*;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
@@ -119,6 +118,7 @@ public abstract class AbstractMysqlSource {
     StageRunner.Output output = runner.runProduce(lastSourceOffset, MAX_BATCH_SIZE);
     assertThat(output.getRecords().get(LANE), is(empty()));
 
+    // spec timezone in timestamp
     String sql = "INSERT INTO ALL_TYPES VALUES (\n" +
         "    1,\n" +
         "    2,\n" +
@@ -152,7 +152,8 @@ public abstract class AbstractMysqlSource {
     assertThat(output.getRecords().get(LANE), hasSize(1));
 
     DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withZoneUTC();
-    DateTimeFormatter formatterShort = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
+    DateTimeFormatter formatterDate = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
+    DateTimeFormatter formatterTime = DateTimeFormat.forPattern("HH:mm:ss").withZoneUTC();
     Record rec = output.getRecords().get(LANE).get(0);
     assertThat(rec.get("/Data/_decimal"), is(create(BigDecimal.ONE)));
     assertThat(rec.get("/Data/_tinyint"), is(create(2)));
@@ -160,9 +161,23 @@ public abstract class AbstractMysqlSource {
     assertThat(rec.get("/Data/_mediumint"), is(create(4)));
     assertThat(rec.get("/Data/_float"), is(create((5.1f))));
     assertThat(rec.get("/Data/_double"), is(create(6.1)));
+
     assertThat(rec.get("/Data/_timestamp"), is(createDatetime(
         formatter.parseDateTime("2016-08-18 12:01:02").toDate()
     )));
+
+    assertThat(rec.get("/Data/_date"), is(createDate(
+        formatterDate.parseDateTime("2016-08-18").toDate()
+    )));
+
+    assertThat(rec.get("/Data/_time"), is(createTime(
+        formatterTime.parseDateTime("12:01:02").toDate()
+    )));
+
+    assertThat(rec.get("/Data/_datetime"), is(createDatetime(
+        formatter.parseDateTime("2016-08-18 12:01:02").toDate()
+    )));
+
     assertThat(rec.get("/Data/_bigint"), is(create(7L)));
     assertThat(rec.get("/Data/_int"), is(create(8)));
     assertThat(rec.get("/Data/_year"), is(create(2016)));
@@ -488,7 +503,8 @@ public abstract class AbstractMysqlSource {
     assertThat(output.getRecords().get(LANE), hasSize(1));
 
     DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withZoneUTC();
-    DateTimeFormatter formatterShort = DateTimeFormat.forPattern("yyyy-MM-dd").withZoneUTC();
+    DateTimeFormatter formatterDateLocal = DateTimeFormat.forPattern("yyyy-MM-dd");
+    DateTimeFormatter formatterTimeLocal = DateTimeFormat.forPattern("HH:mm:ss");
     Record rec = output.getRecords().get(LANE).get(0);
     assertThat(rec.get("/Data/col_0"), is(create("1")));
     assertThat(rec.get("/Data/col_1"), is(create("2")));
@@ -496,9 +512,32 @@ public abstract class AbstractMysqlSource {
     assertThat(rec.get("/Data/col_3"), is(create("4")));
     assertThat(rec.get("/Data/col_4"), is(create(("5.1"))));
     assertThat(rec.get("/Data/col_5"), is(create("6.1")));
+
+    assertThat(rec.get("/Data/col_6"), is(create(
+        new java.sql.Timestamp(
+            formatter.parseDateTime("2016-08-18 12:01:02").getMillis()
+        ).toString()
+    )));
+
     assertThat(rec.get("/Data/col_7"), is(create("7")));
     assertThat(rec.get("/Data/col_8"), is(create("8")));
-    assertThat(rec.get("/Data/col_9"), is(create("2016-08-18")));
+
+    assertThat(rec.get("/Data/col_9"), is(create(
+        formatterDateLocal.print(
+          formatter.parseDateTime("2016-08-18 12:01:02").withTimeAtStartOfDay().getMillis()
+        )
+    )));
+
+    assertThat(rec.get("/Data/col_10"), is(create(
+        formatterTimeLocal.print(
+            formatter.parseDateTime("2016-08-18 12:01:02").getMillis()
+        )
+    )));
+
+    assertThat(rec.get("/Data/col_11"), is(create(
+        formatter.parseDateTime("2016-08-18 12:01:02").toDate().toString()
+    )));
+
     assertThat(rec.get("/Data/col_12"), is(create("2016")));
     assertThat(rec.get("/Data/col_13"), is(create("A")));
     assertThat(rec.get("/Data/col_14"), is(create("1")));
