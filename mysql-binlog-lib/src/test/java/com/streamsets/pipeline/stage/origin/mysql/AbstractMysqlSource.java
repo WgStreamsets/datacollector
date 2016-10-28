@@ -504,7 +504,6 @@ public abstract class AbstractMysqlSource {
 
     DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withZoneUTC();
     DateTimeFormatter formatterDateLocal = DateTimeFormat.forPattern("yyyy-MM-dd");
-    DateTimeFormatter formatterTimeLocal = DateTimeFormat.forPattern("HH:mm:ss");
     Record rec = output.getRecords().get(LANE).get(0);
     assertThat(rec.get("/Data/col_0"), is(create("1")));
     assertThat(rec.get("/Data/col_1"), is(create("2")));
@@ -525,12 +524,6 @@ public abstract class AbstractMysqlSource {
     assertThat(rec.get("/Data/col_9"), is(create(
         formatterDateLocal.print(
           formatter.parseDateTime("2016-08-18 12:01:02").withTimeAtStartOfDay().getMillis()
-        )
-    )));
-
-    assertThat(rec.get("/Data/col_10"), is(create(
-        formatterTimeLocal.print(
-            formatter.parseDateTime("2016-08-18 12:01:02").getMillis()
         )
     )));
 
