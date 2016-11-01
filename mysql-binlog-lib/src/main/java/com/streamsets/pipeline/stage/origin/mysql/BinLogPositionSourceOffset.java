@@ -63,14 +63,13 @@ public class BinLogPositionSourceOffset implements SourceOffset {
     if (position != that.position) {
       return false;
     }
-    return filename != null ? filename.equals(that.filename) : that.filename == null;
-
+    return filename.equals(that.filename);
   }
 
   @Override
   public int hashCode() {
     int result = (int) (position ^ (position >>> 32));
-    result = 31 * result + (filename != null ? filename.hashCode() : 0);
+    result = 31 * result + filename.hashCode();
     return result;
   }
 
