@@ -29,4 +29,4 @@ Origin works well with MySql servers with and without GTID enabled.
 - Origin does not check server's `serverId`, so its up to you to setup offset correctly when connecting to different server if GTID is off. When GTID is on - it does not matter.
 - In case of server errors origin stops.
 - If mysql connector cannot parse some event (it is known that this happens with `POINT` columns) - error is logged, but origin continues working.
-- Knows issue - if you start from beginning on first start and there very schema changes between first binlog event and current time - result may be unpredictable. The same issue happens if you stop origin, make changes to schema (drop a column for example) and then start origin. If it meets some event for table with changed schema - it may produce complete nonsense.
+- Known issue - if you start from beginning on first start and there very schema changes between first binlog event and current time - result may be unpredictable. The same issue happens if you stop origin, make changes to schema (drop a column for example) and then start origin. If it meets some event for table with changed schema - it may produce complete nonsense.
